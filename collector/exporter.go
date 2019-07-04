@@ -108,9 +108,6 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	e.totalScrapes.Inc()
 	scrapeTime := time.Now()
 	e.netappUp.Set(0)
-	 if  checkNetappUp(e.netappClient){
-		e.netappUp.Set(1)
-	}
 	ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(scrapeTime).Seconds(), "connection")
 
 	wg := &sync.WaitGroup{}
@@ -126,32 +123,8 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 				e.scrapeErrors.WithLabelValues(label).Inc()
 				e.error.Set(1)
 			}
+			e.netappUp.Set(1)
 			ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(scrapeTime).Seconds(), label)
 		}(scraper)
 	}
-}
-
-
-func checkNetappUp(netappClient *netapp.Client) bool {
-	var base *netapp.Base
-	req, err := netappClient.NewRequest("GET",&base) 
-	if err != nil {
-		log.Error(err.Error())
-		return false
-		
-	}
-	var r interface{}
-	res, err := netappClient.Do(req, r)
-	if err != nil {
-		log.Error(err.Error())
-		return false 
-	}
-	
-	switch res.StatusCode {
-		case 200, 201, 202, 204, 205, 206:
-			return true
-		default: return false
-	
-		}
-
 }

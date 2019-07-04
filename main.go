@@ -1,12 +1,12 @@
 package main
 
 import (
-	"net/http"
+	"github.com/jenningsloy318/netapp_exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
-	"github.com/jenningsloy318/netapp_exporter/collector"
+	"net/http"
 )
 
 var (
@@ -25,13 +25,15 @@ var (
 // define new http handleer
 func metricsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var scrapers =  []collector.Scraper {
-			//collector.system,
+		var scrapers = []collector.Scraper{
+			collector.ScrapeSystem{},
+			collector.ScrapeAggr{},
+			collector.ScrapeVserver{},
 		}
 		registry := prometheus.NewRegistry()
 
 		filers := loadFilerFromFile(*configFile)
-		for  _, f := range filers {
+		for _, f := range filers {
 			netappClient := newNetappClient(f)
 			collector := collector.New(netappClient, scrapers)
 			registry.MustRegister(collector)
@@ -46,17 +48,13 @@ func metricsHandler() http.HandlerFunc {
 	}
 }
 
-
-
-
-
 func main() {
 	log.AddFlags(kingpin.CommandLine)
 	kingpin.HelpFlag.Short('h')
 	kingpin.Parse()
 	log.Infoln("Starting netapp_exporter")
 
-	http.Handle("/metrics", metricsHandler())       // Regular metrics endpoint for local IPMI metrics.
+	http.Handle("/metrics", metricsHandler()) // Regular metrics endpoint for local IPMI metrics.
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>

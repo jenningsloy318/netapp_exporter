@@ -1,26 +1,20 @@
-
 package main
 
 import (
 	"fmt"
-	"time"
 	"github.com/pepabo/go-netapp/netapp"
+	"github.com/prometheus/common/log"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
-	"github.com/prometheus/common/log"
-
+	"time"
 )
 
-
 type Filer struct {
-	Name             string `yaml:"name"`
-	Host             string `yaml:"host"`
-	Username         string `yaml:"username"`
-	Password         string `yaml:"password"`
+	Name     string `yaml:"name"`
+	Host     string `yaml:"host"`
+	Username string `yaml:"username"`
+	Password string `yaml:"password"`
 }
-
-
-
 
 func loadFilerFromFile(fileName string) (c []*Filer) {
 	var fb []Filer
@@ -43,7 +37,7 @@ func newNetappClient(filer *Filer) *netapp.Client {
 	_url := "https://%s/servlets/netapp.servlets.admin.XMLrequest_filer"
 	url := fmt.Sprintf(_url, filer.Host)
 
-	version := "1.7"
+	version := "1.130"
 
 	opts := &netapp.ClientOptions{
 		BasicAuthUser:     filer.Username,
