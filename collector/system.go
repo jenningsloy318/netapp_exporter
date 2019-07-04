@@ -21,7 +21,7 @@ var (
 	systemNodeUptimeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SystemSubsystem, "uptime"),
 		"uptime of the node.",
-		[]string{"name", "model", "location", "productversion", "euuid"}, nil)
+		[]string{"name", "model", "location", "productversion", "uuid"}, nil)
 )
 
 
