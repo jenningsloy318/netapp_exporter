@@ -29,6 +29,7 @@ func metricsHandler() http.HandlerFunc {
 			collector.ScrapeSystem{},
 			collector.ScrapeAggr{},
 			collector.ScrapeVserver{},
+			collector.ScrapeVolume{},
 		}
 		registry := prometheus.NewRegistry()
 

@@ -172,9 +172,7 @@ func getAggrList(netappClient *netapp.Client,opts *netapp.AggrOptions ) (r []net
 
 func GetAggrSpaceData(netappClient *netapp.Client) (r []*AggregateSpace) {
 	opts := &netapp.AggrSpaceOptions  {
-		Query: &netapp.AggrSpaceInfoQuery  {
-			AggrSpaceInfo   : &netapp.AggrSpaceInfo{},
-		},
+		Query: &netapp.AggrSpaceInfoQuery  {},
 		DesiredAttributes: &netapp.AggrSpaceInfoQuery  {
 			AggrSpaceInfo  : &netapp.AggrSpaceInfo{},
 		},

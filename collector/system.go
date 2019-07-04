@@ -67,9 +67,7 @@ func (ScrapeSystem) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Met
 
 func GetNodeData(netappClient *netapp.Client) (r []*Node) {
 	opts := &netapp.NodeDetailOptions {
-		Query: &netapp.NodeDetailsQuery{
-			NodeDetails : &netapp.NodeDetails{},
-		},
+		Query: &netapp.NodeDetailsQuery{},
 		DesiredAttributes: &netapp.NodeDetailsQuery{
 			NodeDetails : &netapp.NodeDetails{},
 		},

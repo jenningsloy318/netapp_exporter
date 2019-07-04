@@ -16,7 +16,7 @@ var (
 	VServerInfoDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "volume_delete_retention_hours"),
 		"uptime of the vserver.",
-		[]string{"vserver","vserver_subtype"}, nil)
+		[]string{"vserver"}, nil)
 )
 
 
@@ -37,8 +37,8 @@ func (ScrapeVserver) Help() string {
 type VServer struct {
 	VserverName                   string
 	VolumeDeleteRetentionHours    int
-	VserverSubtype                string
-
+	State                         string
+	OperationalState              string
 }
 
 
@@ -47,7 +47,7 @@ func (ScrapeVserver) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Me
 
 	for _, VserverInfo := range GetVserverData(netappClient) {
 		
-			ch <- prometheus.MustNewConstMetric(VServerInfoDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), VserverInfo.VserverName,VserverInfo.VserverSubtype)
+			ch <- prometheus.MustNewConstMetric(VServerInfoDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), VserverInfo.VserverName)
 	 
 	}
 	return nil
@@ -71,7 +71,8 @@ func GetVserverData(netappClient *netapp.Client) (r []*VServer) {
 		r = append(r, &VServer{
 			VserverName:                n.VserverName,
 			VolumeDeleteRetentionHours: n.VolumeDeleteRetentionHours,
-			VserverSubtype: 								n.VserverSubtype,
+			State:                      n.State,
+			OperationalState:           n.OperationalState,
 		})
 	}
 	return
