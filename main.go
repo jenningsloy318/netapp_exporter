@@ -25,18 +25,12 @@ var (
 // define new http handleer
 func metricsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var scrapers = []collector.Scraper{
-			collector.ScrapeSystem{},
-			collector.ScrapeAggr{},
-			collector.ScrapeVserver{},
-			collector.ScrapeVolume{},
-		}
 		registry := prometheus.NewRegistry()
 
 		filers := loadFilerFromFile(*configFile)
 		for _, f := range filers {
 			netappClient := newNetappClient(f)
-			collector := collector.New(netappClient, scrapers)
+			collector := collector.New(netappClient)
 			registry.MustRegister(collector)
 		}
 		gatherers := prometheus.Gatherers{
