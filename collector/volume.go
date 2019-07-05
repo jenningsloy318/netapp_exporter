@@ -9,7 +9,7 @@ import (
 
 const (
 	// Subsystem.
-	VolumeSubsystem = "Volume"
+	VolumeSubsystem = "volume"
 )
 
 // Metric descriptors.
@@ -23,7 +23,7 @@ var (
 		"Available Size of the volume.",
 		[]string{"volume","vserver","aggr","node"}, nil)
 	VolumeSizeTotalDesc = prometheus.NewDesc(
-		prometheus.BuildFQName(namespace, VolumeSubsystem, "Size_Total"),
+		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_total"),
 		"Total Size   of the volume.",
 		[]string{"volume","vserver","aggr","node"}, nil)
 	VolumeSizeUsedDesc = prometheus.NewDesc(
