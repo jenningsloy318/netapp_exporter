@@ -32,11 +32,12 @@ type Exporter struct {
 	scrapeErrors *prometheus.CounterVec
 	netappUp       prometheus.Gauge
 }
- var scrapers = []Scraper {
+var scrapers = []Scraper {
 		ScrapeSystem{},
 		ScrapeAggr{},
 		ScrapeVserver{},
 		ScrapeVolume{},
+		ScrapePerf{},
 		}
 
 func New(netappClient *netapp.Client) *Exporter {
