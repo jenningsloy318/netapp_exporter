@@ -38,6 +38,11 @@ var (
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "snapshot_reserve_size"),
 		"Reserve Size By Snapshots of the volume.",
 		[]string{"volume","vserver","aggr","node"}, nil)		
+		VolumeStateDesc = prometheus.NewDesc(
+			prometheus.BuildFQName(namespace, VolumeSubsystem, "state"),
+			"State of the volume, 1 (online), 0(offline), 2(restricted), or 3(mixed).",
+			[]string{"volume","vserver","aggr","node"}, nil)		
+	
 	)
 
 
@@ -66,6 +71,7 @@ type Volume struct {
 	SizeUsed                 string
 	SizeUsedBySnapshots      string
 	SizeReservedBySnapshot      string
+	State 											string
 
 }
 
@@ -90,7 +96,11 @@ func (ScrapeVolume) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Met
 		}			
 		if sizeReservedBySnapshot,err :=  strconv.ParseFloat(VolumeInfo.SizeReservedBySnapshot, 64); err == nil{
 			ch <- prometheus.MustNewConstMetric(VolumeSizeReservedBySnapshotDesc, prometheus.GaugeValue,sizeReservedBySnapshot, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
-		}					
+		}
+		if stateVal, ok :=  parseStatus(VolumeInfo.State); ok{
+			ch <- prometheus.MustNewConstMetric(VolumeStateDesc, prometheus.GaugeValue,stateVal, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+		}
+		
 	}
 	return nil
 }
@@ -128,6 +138,7 @@ func GetVolumeData(netappClient *netapp.Client) (r []*Volume) {
 			SizeUsed:            n.VolumeSpaceAttributes.SizeUsed,
 			SizeUsedBySnapshots: n.VolumeSpaceAttributes.SizeUsedBySnapshots,
 			SizeReservedBySnapshot: n.VolumeSpaceAttributes.SnapshotReserveSize,
+			State:								  n.VolumeStateAttributes.State,
 		})
 	}
 	return

@@ -38,6 +38,26 @@ func parseStatus(data string) (float64, bool) {
 	if bytes.Equal([]byte(data), []byte("stopping")) {
 		return 3, true
 	}
+	if bytes.Equal([]byte(data), []byte("initializing")) {
+		return 4, true
+	}
+	if bytes.Equal([]byte(data), []byte("deleting")) {
+		return 5, true
+	}
+//volume state
+	if bytes.Equal([]byte(data), []byte("online")) {
+		return 1, true
+	}
+	if bytes.Equal([]byte(data), []byte("offline")) {
+		return 0, true
+	}
+	if bytes.Equal([]byte(data), []byte("restricted")) {
+		return 2, true
+	}
+	if bytes.Equal([]byte(data), []byte("mixed")) {
+		return 3, true
+	}
+
 	value, err := strconv.ParseFloat(string(data), 64)
 	return value, err == nil
 }
