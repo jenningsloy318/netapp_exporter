@@ -17,13 +17,13 @@ var (
 		prometheus.BuildFQName(namespace, VserverSubsystem, "volume_delete_retention_hours"),
 		"Volume Delete Retention Hours of the vserver.",
 		[]string{"vserver","vserver_type"}, nil)
-	VServerStateDesc = prometheus.NewDesc(
+	VServerAdminStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "state"),
-		"State of the vserver.",
+		"Admin State of the vserver,1(running), 0(stopped), 2(starting),3(stopping), 4(initializing), or 5(deleting).",
 		[]string{"vserver","vserver_type"}, nil)
 	VServerOperationalStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "operational_state"),
-		"Operational State of the vserver.",
+		"Operational State of the vserver, 1(running), 0(stopped).",
 		[]string{"vserver","vserver_type"}, nil)
 
 )
@@ -60,7 +60,7 @@ func (ScrapeVserver) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Me
 			ch <- prometheus.MustNewConstMetric(VServerVolumeDeleteRetentionHoursDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), VserverInfo.VserverName,VserverInfo.VserverType)
 			if len(VserverInfo.State)>0 {
 				if stateVal,ok := parseStatus(VserverInfo.State);ok{
-				ch <- prometheus.MustNewConstMetric(VServerStateDesc, prometheus.GaugeValue,stateVal, VserverInfo.VserverName,VserverInfo.VserverType)
+				ch <- prometheus.MustNewConstMetric(VServerAdminStateDesc, prometheus.GaugeValue,stateVal, VserverInfo.VserverName,VserverInfo.VserverType)
 				}
 			}
 			if len(VserverInfo.OperationalState)>0 {
