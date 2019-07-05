@@ -16,28 +16,28 @@ const (
 var (
 	VolumeSizeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size"),
-		"Size of the Volume.",
-		[]string{"Volume","Vserver","Aggr","Node"}, nil)
+		"Size of the volume.",
+		[]string{"volume","vserver","aggr","node"}, nil)
 	VolumeSizeAvailableDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_available"),
-		"Available Size of the Volume.",
-		[]string{"Volume","Vserver","Aggr","Node"}, nil)
+		"Available Size of the volume.",
+		[]string{"volume","vserver","aggr","node"}, nil)
 	VolumeSizeTotalDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "Size_Total"),
-		"Total Size   of the Volume.",
-		[]string{"Volume","Vserver","Aggr","Node"}, nil)
+		"Total Size   of the volume.",
+		[]string{"volume","vserver","aggr","node"}, nil)
 	VolumeSizeUsedDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_used"),
-		"Used Size of the Volume.",
-		[]string{"Volume","Vserver","Aggr","Node"}, nil)
+		"Used Size of the volume.",
+		[]string{"volume","vserver","aggr","node"}, nil)
 	VolumeSizeUsedBySnapshotsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_used_by_snapshots"),
-		"Used Size By Snapshots of the Volume.",
-		[]string{"Volume","Vserver","Aggr","Node"}, nil)		
+		"Used Size By Snapshots of the volume.",
+		[]string{"volume","vserver","aggr","node"}, nil)		
 	VolumeSizeReservedBySnapshotDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "snapshot_reserve_size"),
-		"Reserve Size By Snapshots of the Volume.",
-		[]string{"Volume","Vserver","Aggr","Node"}, nil)		
+		"Reserve Size By Snapshots of the volume.",
+		[]string{"volume","vserver","aggr","node"}, nil)		
 	)
 
 

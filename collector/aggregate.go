@@ -21,35 +21,35 @@ var (
 	aggrSizeUsedDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "size_used"),
 		"Used size of aggr.",
-		[]string{"Aggr","cluster","Node"}, nil)
+		[]string{"aggr","cluster","node"}, nil)
 	aggrSizeTotalDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "size_total"),
 		"Total size of aggr.",
-		[]string{"Aggr","cluster","Node"}, nil)
+		[]string{"aggr","cluster","node"}, nil)
   aggrSizeAvailableDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "size_available"),
 		"Available size of aggr.",
-		[]string{"Aggr","cluster","Node"}, nil)			
+		[]string{"aggr","cluster","node"}, nil)			
 	aggrTotalReservedSpaceDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "total_reserved_space"),
 		"Total Reserved Space  of aggr.",
-		[]string{"Aggr","cluster","Node"}, nil)		
+		[]string{"aggr","cluster","node"}, nil)		
 	aggrPercentUsedCapacityDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "percent_used_capacity"),
 		"Percent Used Capacity of aggr.",
-		[]string{"Aggr","cluster","Node"}, nil)							
+		[]string{"aggr","cluster","node"}, nil)							
 	aggrPhysicalUsedDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "physical_used"),
 		"Physical Used size of aggr.",
-		[]string{"Aggr","cluster","Node"}, nil)		
+		[]string{"aggr","cluster","node"}, nil)		
 	aggrPhysicalUsedPercentDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "physical_used_percent"),
 		"Physical Used Percent of aggr.",
-		[]string{"Aggr","cluster","Node"}, nil)
+		[]string{"aggr","cluster","node"}, nil)
 	aggrSnapSizeTotalDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, AggrSubsystem, "snap_size_total"),
 		"Snap Size Total of aggr.",
-		[]string{"Aggr"}, nil)					
+		[]string{"aggr"}, nil)					
 	)
 // Scrapesystem collects system node info
 type ScrapeAggr struct{}
