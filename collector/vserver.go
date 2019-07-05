@@ -13,10 +13,19 @@ const (
 
 // Metric descriptors.
 var (
-	VServerInfoDesc = prometheus.NewDesc(
+	VServerVolumeDeleteRetentionHoursDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "volume_delete_retention_hours"),
-		"uptime of the vserver.",
-		[]string{"vserver"}, nil)
+		"Volume Delete Retention Hours of the vserver.",
+		[]string{"vserver","vserver_type"}, nil)
+	VServerStateDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, VserverSubsystem, "state"),
+		"State of the vserver.",
+		[]string{"vserver","vserver_type"}, nil)
+	VServerOperationalStateDesc = prometheus.NewDesc(
+		prometheus.BuildFQName(namespace, VserverSubsystem, "operational_state"),
+		"Operational State of the vserver.",
+		[]string{"vserver","vserver_type"}, nil)
+
 )
 
 
@@ -36,6 +45,7 @@ func (ScrapeVserver) Help() string {
 
 type VServer struct {
 	VserverName                   string
+	VserverType                  string
 	VolumeDeleteRetentionHours    int
 	State                         string
 	OperationalState              string
@@ -47,7 +57,17 @@ func (ScrapeVserver) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Me
 
 	for _, VserverInfo := range GetVserverData(netappClient) {
 		
-			ch <- prometheus.MustNewConstMetric(VServerInfoDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), VserverInfo.VserverName)
+			ch <- prometheus.MustNewConstMetric(VServerVolumeDeleteRetentionHoursDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), VserverInfo.VserverName,VserverInfo.VserverType)
+			if len(VserverInfo.State)>0 {
+				if stateVal,ok := parseStatus(VserverInfo.State);ok{
+				ch <- prometheus.MustNewConstMetric(VServerStateDesc, prometheus.GaugeValue,stateVal, VserverInfo.VserverName,VserverInfo.VserverType)
+				}
+			}
+			if len(VserverInfo.OperationalState)>0 {
+				if opsStateVal,ok := parseStatus(VserverInfo.OperationalState); ok{
+				ch <- prometheus.MustNewConstMetric(VServerOperationalStateDesc, prometheus.GaugeValue,opsStateVal, VserverInfo.VserverName,VserverInfo.VserverType)
+				}
+			}
 	 
 	}
 	return nil
@@ -59,17 +79,14 @@ func (ScrapeVserver) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Me
 
 func GetVserverData(netappClient *netapp.Client) (r []*VServer) {
 	opts := &netapp.VServerOptions  {
-		Query: &netapp.VServerQuery {
-			VServerInfo  : &netapp.VServerInfo{},
-		},
-		DesiredAttributes: &netapp.VServerQuery {
-			VServerInfo : &netapp.VServerInfo{},
-		},
+		Query: &netapp.VServerQuery {},
+		DesiredAttributes: &netapp.VServerQuery {},
 	}
 	l,_,_ := netappClient.VServer.List(opts)
 	for _, n := range l.Results.AttributesList.VserverInfo {
 		r = append(r, &VServer{
 			VserverName:                n.VserverName,
+			VserverType:                n.VserverType,
 			VolumeDeleteRetentionHours: n.VolumeDeleteRetentionHours,
 			State:                      n.State,
 			OperationalState:           n.OperationalState,

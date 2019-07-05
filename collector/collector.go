@@ -2,6 +2,8 @@ package collector
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
+	"bytes"
+	"strconv"
 )
 
 const (
@@ -17,4 +19,25 @@ func newDesc(subsystem, name, help string) *prometheus.Desc {
 		prometheus.BuildFQName(namespace, subsystem, name),
 		help, nil, nil,
 	)
+}
+
+
+
+func parseStatus(data string) (float64, bool) {
+
+	// vserver state
+	if bytes.Equal([]byte(data), []byte("running")) {
+		return 1, true
+	}
+	if bytes.Equal([]byte(data), []byte("stopped")) {
+		return 0, true
+	}
+	if bytes.Equal([]byte(data), []byte("starting")) {
+		return 2, true
+	}
+	if bytes.Equal([]byte(data), []byte("stopping")) {
+		return 3, true
+	}
+	value, err := strconv.ParseFloat(string(data), 64)
+	return value, err == nil
 }
