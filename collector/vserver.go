@@ -16,15 +16,15 @@ var (
 	VServerVolumeDeleteRetentionHoursDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "volume_delete_retention_hours"),
 		"Volume Delete Retention Hours of the vserver.",
-		[]string{"vserver","vserver_type"}, nil)
+		[]string{"vserver","type"}, nil)
 	VServerAdminStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "state"),
 		"Admin State of the vserver,1(running), 0(stopped), 2(starting),3(stopping), 4(initializing), or 5(deleting).",
-		[]string{"vserver","vserver_type"}, nil)
+		[]string{"vserver","type"}, nil)
 	VServerOperationalStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "operational_state"),
 		"Operational State of the vserver, 1(running), 0(stopped).",
-		[]string{"vserver","vserver_type"}, nil)
+		[]string{"vserver","type"}, nil)
 
 )
 
