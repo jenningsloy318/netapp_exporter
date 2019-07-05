@@ -4,7 +4,6 @@ import (
 	"log"
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
-	"strconv"
 )
 
 const (
@@ -82,19 +81,19 @@ func (ScrapeVolume) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Met
 		
 	for _, VolumeInfo := range GetVolumeData(netappClient) {
 		ch <- prometheus.MustNewConstMetric(VolumeSizeDesc, prometheus.GaugeValue,float64(VolumeInfo.Size), VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
-		if sizeAvailable,err :=  strconv.ParseFloat(VolumeInfo.SizeAvailable, 64); err == nil{
+		if sizeAvailable,ok :=  parseStatus(VolumeInfo.SizeAvailable); ok{
 			ch <- prometheus.MustNewConstMetric(VolumeSizeAvailableDesc, prometheus.GaugeValue,sizeAvailable, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
 		}
-		if sizeTotal,err :=  strconv.ParseFloat(VolumeInfo.SizeTotal, 64); err == nil{
+		if sizeTotal,ok :=  parseStatus(VolumeInfo.SizeTotal); ok{
 			ch <- prometheus.MustNewConstMetric(VolumeSizeTotalDesc, prometheus.GaugeValue,sizeTotal, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
 		}
-		if sizeUsed,err :=  strconv.ParseFloat(VolumeInfo.SizeUsed, 64); err == nil{
+		if sizeUsed,ok :=  parseStatus(VolumeInfo.SizeUsed); ok{
 			ch <- prometheus.MustNewConstMetric(VolumeSizeUsedDesc, prometheus.GaugeValue,sizeUsed, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
 		}		
-		if sizeUsedBySnapshots,err :=  strconv.ParseFloat(VolumeInfo.SizeUsedBySnapshots, 64); err == nil{
+		if sizeUsedBySnapshots,ok :=  parseStatus(VolumeInfo.SizeUsedBySnapshots); ok{
 			ch <- prometheus.MustNewConstMetric(VolumeSizeUsedBySnapshotsDesc, prometheus.GaugeValue,sizeUsedBySnapshots, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
 		}			
-		if sizeReservedBySnapshot,err :=  strconv.ParseFloat(VolumeInfo.SizeReservedBySnapshot, 64); err == nil{
+		if sizeReservedBySnapshot,ok :=  parseStatus(VolumeInfo.SizeReservedBySnapshot); ok{
 			ch <- prometheus.MustNewConstMetric(VolumeSizeReservedBySnapshotDesc, prometheus.GaugeValue,sizeReservedBySnapshot, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
 		}
 		if stateVal, ok :=  parseStatus(VolumeInfo.State); ok{
