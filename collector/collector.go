@@ -61,3 +61,34 @@ func parseStatus(data string) (float64, bool) {
 	value, err := strconv.ParseFloat(string(data), 64)
 	return value, err == nil
 }
+
+func stringToFloat64Slice(data []string) ([]float64, bool ) {
+  var numbers []float64
+	for _, arg := range data {
+		if n, err := strconv.ParseFloat(arg, 64); err == nil {
+				numbers = append(numbers, n)
+		}
+		
+	}
+	return numbers, true 
+
+}
+
+func float64SliceSum(data []float64) float64 {
+  var sum float64
+	for _, value := range data {
+		sum += value
+}
+return sum
+}
+
+
+
+func float64SliceToBucket(data []float64) map[float64]uint64 {
+
+  var bucket map[float64]uint64
+	for index, value := range data {
+		bucket[float64(index)]=uint64(value)
+}
+	return bucket 
+}
