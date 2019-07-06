@@ -65,16 +65,14 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 					var metricMap = make(map[string]float64)
 
 					for _,perfCounterData := range instanceData.Counters.CounterData{
-							if  perfCounterData.Name =="node_name" {
-									labelName=append(labelName,"node")
-									labelValue=append(labelValue,perfCounterData.Value)
-							} else if  perfCounterData.Name == "vserver_name" {
-									labelName=append(labelName,"vserver")
-									labelValue=append(labelValue,perfCounterData.Value)
-							} else if  perfCounterData.Name == "cpu_name"  {
-									labelName=append(labelName,"cpu")
-									labelValue=append(labelValue,perfCounterData.Value)
-								}else if  ( strings.Contains(perfCounterData.Name,"_name") ||  strings.Contains(perfCounterData.Name,"_id")  ||  strings.Contains(perfCounterData.Name,"_uuid") ||  strings.ContainsAny(perfCounterData.Value,",- ") || len(perfCounterData.Value) == 0 ){
+							if  ( perfCounterData.Name =="node_name" ||  perfCounterData.Name == "vserver_name" || perfCounterData.Name == "cpu_name"  ){
+									labelName=append(labelName,strings.Split(perfCounterData.Name,"_")[0])
+									if perfCounterData.Value == "Multiple_Values" {
+											labelValue=append(labelValue,"all")
+									}else {
+										labelValue=append(labelValue,perfCounterData.Value)
+									}
+							}else if  ( strings.Contains(perfCounterData.Name,"_name") ||  strings.Contains(perfCounterData.Name,"_id")  ||  strings.Contains(perfCounterData.Name,"_uuid") ||  strings.ContainsAny(perfCounterData.Value,",- ") || len(perfCounterData.Value) == 0 ){ // this filter out the histogram data(seperated by ","), also filter out non metric items such instance name/uuid/id 
 									continue 
 								}else{
 										if value,ok := parseStatus(perfCounterData.Value);ok {
