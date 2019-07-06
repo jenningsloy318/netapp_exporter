@@ -90,7 +90,17 @@ func GetNodeData(netappClient *netapp.Client) (r []*Node) {
 	opts := &netapp.NodeDetailOptions {
 		Query: &netapp.NodeDetailsQuery{},
 		DesiredAttributes: &netapp.NodeDetailsQuery{
-			NodeDetails : &netapp.NodeDetails{},
+			NodeDetails : &netapp.NodeDetails{
+				Name                				    :"x",
+				NodeOwner           				    :"x",
+				NodeModel               				:"x",
+				NodeLocation 										:"x",
+				NodeUuid												:"x",
+				NodeUptime											:"x",
+				EnvFailedFanCount   				    :1,
+				EnvFailedPowerSupplyCount       :1, 
+				EnvOverTemperature              :false,
+			},
 		},
 	}
 

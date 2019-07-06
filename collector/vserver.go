@@ -80,7 +80,15 @@ func (ScrapeVserver) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Me
 func GetVserverData(netappClient *netapp.Client) (r []*VServer) {
 	opts := &netapp.VServerOptions  {
 		Query: &netapp.VServerQuery {},
-		DesiredAttributes: &netapp.VServerQuery {},
+		DesiredAttributes: &netapp.VServerQuery {
+			VServerInfo: &netapp.VServerInfo{
+			VserverName                        :"x",
+			VserverType                        :"x",
+			VolumeDeleteRetentionHours         :1,
+			State                              :"x",
+			OperationalState                   :"x",
+			},
+		},
 	}
 	l,_,_ := netappClient.VServer.List(opts)
 	for _, n := range l.Results.AttributesList.VserverInfo {

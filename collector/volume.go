@@ -116,9 +116,23 @@ func GetVolumeData(netappClient *netapp.Client) (r []*Volume) {
 		},
 		DesiredAttributes: &netapp.VolumeQuery{
 			VolumeInfo: &netapp.VolumeInfo{
-				VolumeSpaceAttributes: &netapp.VolumeSpaceAttributes{},
-				VolumeIDAttributes :  &netapp.VolumeIDAttributes {},
-				VolumeStateAttributes: &netapp.VolumeStateAttributes{},
+				VolumeIDAttributes :  &netapp.VolumeIDAttributes {
+					Name                     :"x",
+					OwningVserverName        :"x",
+					ContainingAggregateName  :"x",
+					Node 										 :"x",
+				},
+				VolumeSpaceAttributes: &netapp.VolumeSpaceAttributes{
+					Size                     :1,
+					SizeAvailable            :"x",
+					SizeTotal                :"x",
+					SizeUsed                 :"x",
+					SizeUsedBySnapshots      :"x",
+					SnapshotReserveSize      :"x",
+				},
+				VolumeStateAttributes: &netapp.VolumeStateAttributes{
+					State 									 :"x",
+				},
 			},
 		},
 	}

@@ -68,7 +68,7 @@ func (ScrapeAggr) Help() string {
 type Aggregate struct {
 	Name                string
 	OwnerName           string
-	Cluseter            string
+	Cluster            string
 	SizeUsed            int
 	SizeTotal           int
 	SizeAvailable       int
@@ -92,14 +92,14 @@ type AggregateSpace struct {
 func (ScrapeAggr) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, AggrInfo := range GetAggrData(netappClient) {
-		ch <- prometheus.MustNewConstMetric(aggrSizeUsedDesc, prometheus.GaugeValue,float64(AggrInfo.SizeUsed), AggrInfo.Name, AggrInfo.Cluseter,AggrInfo.OwnerName)
-		ch <- prometheus.MustNewConstMetric(aggrSizeTotalDesc, prometheus.GaugeValue,float64(AggrInfo.SizeTotal), AggrInfo.Name, AggrInfo.Cluseter,AggrInfo.OwnerName)
-		ch <- prometheus.MustNewConstMetric(aggrSizeAvailableDesc, prometheus.GaugeValue,float64(AggrInfo.SizeAvailable), AggrInfo.Name, AggrInfo.Cluseter,AggrInfo.OwnerName)
-		ch <- prometheus.MustNewConstMetric(aggrTotalReservedSpaceDesc, prometheus.GaugeValue,float64(AggrInfo.TotalReservedSpace), AggrInfo.Name, AggrInfo.Cluseter,AggrInfo.OwnerName)
+		ch <- prometheus.MustNewConstMetric(aggrSizeUsedDesc, prometheus.GaugeValue,float64(AggrInfo.SizeUsed), AggrInfo.Name, AggrInfo.Cluster,AggrInfo.OwnerName)
+		ch <- prometheus.MustNewConstMetric(aggrSizeTotalDesc, prometheus.GaugeValue,float64(AggrInfo.SizeTotal), AggrInfo.Name, AggrInfo.Cluster,AggrInfo.OwnerName)
+		ch <- prometheus.MustNewConstMetric(aggrSizeAvailableDesc, prometheus.GaugeValue,float64(AggrInfo.SizeAvailable), AggrInfo.Name, AggrInfo.Cluster,AggrInfo.OwnerName)
+		ch <- prometheus.MustNewConstMetric(aggrTotalReservedSpaceDesc, prometheus.GaugeValue,float64(AggrInfo.TotalReservedSpace), AggrInfo.Name, AggrInfo.Cluster,AggrInfo.OwnerName)
 		PercentUsedCapacity,_ := strconv.ParseFloat(AggrInfo.PercentUsedCapacity, 64);
-		ch <- prometheus.MustNewConstMetric(aggrPercentUsedCapacityDesc, prometheus.GaugeValue,PercentUsedCapacity, AggrInfo.Name, AggrInfo.Cluseter,AggrInfo.OwnerName)
-		ch <- prometheus.MustNewConstMetric(aggrPhysicalUsedDesc, prometheus.GaugeValue,float64(AggrInfo.PhysicalUsed), AggrInfo.Name, AggrInfo.Cluseter,AggrInfo.OwnerName)
-		ch <- prometheus.MustNewConstMetric(aggrPhysicalUsedPercentDesc, prometheus.GaugeValue,float64(AggrInfo.PhysicalUsedPercent), AggrInfo.Name, AggrInfo.Cluseter,AggrInfo.OwnerName)
+		ch <- prometheus.MustNewConstMetric(aggrPercentUsedCapacityDesc, prometheus.GaugeValue,PercentUsedCapacity, AggrInfo.Name, AggrInfo.Cluster,AggrInfo.OwnerName)
+		ch <- prometheus.MustNewConstMetric(aggrPhysicalUsedDesc, prometheus.GaugeValue,float64(AggrInfo.PhysicalUsed), AggrInfo.Name, AggrInfo.Cluster,AggrInfo.OwnerName)
+		ch <- prometheus.MustNewConstMetric(aggrPhysicalUsedPercentDesc, prometheus.GaugeValue,float64(AggrInfo.PhysicalUsedPercent), AggrInfo.Name, AggrInfo.Cluster,AggrInfo.OwnerName)
   	}
 
 		for _, AggrSpaceInfo := range GetAggrSpaceData(netappClient) {
@@ -125,8 +125,20 @@ func GetAggrData(netappClient *netapp.Client) (r []*Aggregate) {
 			},
 		},
 		DesiredAttributes: &netapp.AggrInfo{
-			AggrOwnershipAttributes: &netapp.AggrOwnershipAttributes{},
-			AggrSpaceAttributes:     &netapp.AggrSpaceAttributes{},
+			AggrOwnershipAttributes: &netapp.AggrOwnershipAttributes{
+				OwnerName           :"x",
+				Cluster            :"x",
+			
+			},
+			AggrSpaceAttributes:     &netapp.AggrSpaceAttributes{
+				SizeUsed            : 1,
+				SizeTotal           : 1,
+				SizeAvailable       : 1,
+				TotalReservedSpace  : 1,
+				PercentUsedCapacity : "x",
+				PhysicalUsed        : 1,
+				PhysicalUsedPercent : 1,
+			},
 		},
 	}
 
@@ -136,7 +148,7 @@ func GetAggrData(netappClient *netapp.Client) (r []*Aggregate) {
 		r = append(r, &Aggregate{
 			Name:                n.AggregateName,
 			OwnerName:           n.AggrOwnershipAttributes.OwnerName,
-			Cluseter:						 n.AggrOwnershipAttributes.Cluster,
+			Cluster:						 n.AggrOwnershipAttributes.Cluster,
 			SizeUsed:            n.AggrSpaceAttributes.SizeUsed,
 			SizeTotal:           n.AggrSpaceAttributes.SizeTotal,
 			SizeAvailable:       n.AggrSpaceAttributes.SizeAvailable,
@@ -174,7 +186,13 @@ func GetAggrSpaceData(netappClient *netapp.Client) (r []*AggregateSpace) {
 	opts := &netapp.AggrSpaceOptions  {
 		Query: &netapp.AggrSpaceInfoQuery  {},
 		DesiredAttributes: &netapp.AggrSpaceInfoQuery  {
-			AggrSpaceInfo  : &netapp.AggrSpaceInfo{},
+			AggrSpaceInfo  : &netapp.AggrSpaceInfo{
+				Aggregate              : "x",
+				SnapSizeTotal          : "x",
+				PercentSnapshotSpace   : "x",
+				PhysicalUsed           : "x",
+				PhysicalUsedPercent    : "x",
+			},
 		},
 	}
 	l,_,_ := netappClient.AggregateSpace.List(opts)
