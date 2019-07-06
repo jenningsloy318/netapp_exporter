@@ -43,7 +43,7 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 					var labelValue  []string
 
 					var metricNamePrefix string 
-					var metricNameSufix string 
+					var metricNameSuffix string 
 				  if strings.Contains(instanceData.Name,"/") {
 						instanceNameSlice := strings.Split(instanceData.Name,"/")
 						labelValue=append(labelValue,instanceNameSlice[len(instanceNameSlice)-1])
@@ -55,11 +55,11 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 						objSlice :=strings.Split(obj,":")
 						labelName = append(labelName,objSlice[1])
 						metricNamePrefix =  objSlice[0]+"_"
-						metricNameSufix = "_per_"+objSlice[1]
+						metricNameSuffix = "_per_"+objSlice[1]
 					}else{
 						labelName = append(labelName,obj)
 						metricNamePrefix = obj+"_"
-						metricNameSufix=""
+						metricNameSuffix=""
 					}
 					
 					var metricMap = make(map[string]float64)
@@ -82,7 +82,7 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 					}
 
 					for metricName,metricValue := range  metricMap{
-						metricName := metricNamePrefix+metricName+metricNameSufix
+						metricName := metricNamePrefix+metricName+metricNameSuffix
 						desc := prometheus.NewDesc(
 							prometheus.BuildFQName(namespace, PerfSubsystem, metricName),
 							"Perf "+labelName[0]+" "+metricName,
@@ -91,7 +91,7 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 					}
 //
 //					for _,perfCounterData := range instanceData.Counters.CounterData{
-//						metricName := metricNamePrefix+perfCounterData.Name+metricNameSufix
+//						metricName := metricNamePrefix+perfCounterData.Name+metricNameSuffix
 //						desc := prometheus.NewDesc(
 //							prometheus.BuildFQName(namespace, PerfSubsystem, metricName),
 //							"Perf "+labelName+" "+metricName,
