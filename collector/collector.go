@@ -92,3 +92,12 @@ func float64SliceToBucket(data []float64) map[float64]uint64 {
 }
 	return bucket 
 }
+
+func boolToFloat64 (data bool) float64 {
+
+	if data {
+		return float64(1)
+	}else {
+		return float64(0)
+	}
+}
