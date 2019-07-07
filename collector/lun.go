@@ -56,7 +56,6 @@ func (ScrapeLun) Help() string {
 
 type Lun struct {
 	
-	Path                      string
 	Node                      string
 	Volume                    string    
 	Vserver                   string
@@ -94,7 +93,6 @@ func GetLunData(netappClient *netapp.Client) (r []*Lun) {
 		Query: &netapp.LunQuery{},
 		DesiredAttributes: &netapp.LunQuery{
 			LunInfo : &netapp.LunInfo{
-				Path                      :"x",
 				Node                      :"x",
 				Volume                    :"x",   
 				Vserver                   :"x",
@@ -111,7 +109,6 @@ func GetLunData(netappClient *netapp.Client) (r []*Lun) {
 
 	for _, n := range l {
 		r = append(r, &Lun{
-			Path                      :n.Path,
 			Node                      :n.Node,
 			Volume                    :n.Volume,    
 			Vserver                   :n.Vserver,
