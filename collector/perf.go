@@ -5,6 +5,7 @@ import (
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
 	"strings"
+	"fmt"
 )
 
 const (
@@ -54,11 +55,12 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 					if strings.Contains(obj,":") {
 						objSlice :=strings.Split(obj,":")
 						labelName = append(labelName,objSlice[1])
-						metricNamePrefix =  objSlice[0]+"_"
-						metricNameSuffix = "_per_"+objSlice[1]
+						metricNamePrefix =fmt.Sprintf("%s_",objSlice[0])
+						metricNameSuffix = fmt.Sprintf("_per_%s",objSlice[1])
+
 					}else{
 						labelName = append(labelName,obj)
-						metricNamePrefix = obj+"_"
+						metricNamePrefix =fmt.Sprintf("%s_",obj)
 						metricNameSuffix=""
 					}
 					
@@ -72,8 +74,12 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 									}else {
 										labelValue=append(labelValue,perfCounterData.Value)
 									}
-							}else if  ( strings.Contains(perfCounterData.Name,"_name") ||  strings.Contains(perfCounterData.Name,"_id")  ||  strings.Contains(perfCounterData.Name,"_uuid") ||  strings.ContainsAny(perfCounterData.Value,",- ") || len(perfCounterData.Value) == 0 ){ // this filter out the histogram data(seperated by ","), also filter out non metric items such instance name/uuid/id 
+							}else if strings.ContainsAny(perfCounterData.Value,",- ") { // this filter out the histogram data(seperated by ","), value contain space which is actually the  description of the item, value contains "-" which can be a id or uuid, 
 									continue 
+								}else if  ( strings.Contains(perfCounterData.Name,"_name") ||  strings.Contains(perfCounterData.Name,"_id")  ||  strings.Contains(perfCounterData.Name,"_uuid") ||  strings.ContainsAny(perfCounterData.Value,",- ") || len(perfCounterData.Value) == 0 ){ // this filter out the histogram data(seperated by ","), also filter out non metric items such instance name/uuid/id 
+									continue 
+							}else if len(perfCounterData.Value) == 0 { // this set the value to 0 when the value is empty 
+									metricMap[perfCounterData.Name]=0
 								}else{
 										if value,ok := parseStatus(perfCounterData.Value);ok {
 										metricMap[perfCounterData.Name]=value
@@ -82,30 +88,15 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 					}
 
 					for metricName,metricValue := range  metricMap{
-						metricName := metricNamePrefix+metricName+metricNameSuffix
+						//metricName := metricNamePrefix+metricName+metricNameSuffix
+						metricName := fmt.Sprintf("%s%s%s",metricNamePrefix,metricName,metricNameSuffix)
+						metricHelp := fmt.Sprintf("Perf %s %s",labelName[0],metricName)
 						desc := prometheus.NewDesc(
 							prometheus.BuildFQName(namespace, PerfSubsystem, metricName),
-							"Perf "+labelName[0]+" "+metricName,
+							metricHelp,
 						  labelName, nil)
 							ch <- prometheus.MustNewConstMetric(desc, prometheus.GaugeValue,metricValue,labelValue...)
 					}
-//
-//					for _,perfCounterData := range instanceData.Counters.CounterData{
-//						metricName := metricNamePrefix+perfCounterData.Name+metricNameSuffix
-//						desc := prometheus.NewDesc(
-//							prometheus.BuildFQName(namespace, PerfSubsystem, metricName),
-//							"Perf "+labelName+" "+metricName,
-//							[]string{labelName}, nil)
-//						if  (strings.Contains(perfCounterData.Value,"name")  || strings.Contains(perfCounterData.Value,"id") |//| strings.Contains(perfCounterData.Value,"uuid")) {// this will filter out the items  which are not //metrics, but instance name, id or uuid
-//							continue 
-//						}
-//						if  strings.ContainsAny(perfCounterData.Value,",- ")  { // this will filter out the items whose value //contains "," or "-", which mayb histogram data, or not even metrics value(contains "-")
-//								continue
-//							}
-//            if value,ok := parseStatus(perfCounterData.Value);ok {
-//								ch <- prometheus.MustNewConstMetric(desc, prometheus.GaugeValue,value, instanceName)
-//						}					
-//			}
 		}
 		
 }
