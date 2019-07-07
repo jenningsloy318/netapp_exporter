@@ -37,36 +37,36 @@ func (ScrapePerf) Help() string {
 
 // Scrape collects data from  netapp system and Perf info 
 func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
-		for _,obj := range objects {
-			for _,instanceData := range GetPerfObjectInstanceInfo(netappClient,obj) {
+		for _,object := range objects {
+			for _,perfInstanceData := range GetPerfObjectInstanceInfo(netappClient,object) {
 				
 					var labelName   []string
 					var labelValue  []string
 
 					var metricNamePrefix string 
 					var metricNameSuffix string 
-				  if strings.Contains(instanceData.Name,"/") {
-						instanceNameSlice := strings.Split(instanceData.Name,"/")
+				  if strings.Contains(perfInstanceData.Name,"/") {
+						instanceNameSlice := strings.Split(perfInstanceData.Name,"/")
 						labelValue=append(labelValue,instanceNameSlice[len(instanceNameSlice)-1])
 					} else {
-						labelValue=append(labelValue,instanceData.Name)
+						labelValue=append(labelValue,perfInstanceData.Name)
 					}
 
-					if strings.Contains(obj,":") {
-						objSlice :=strings.Split(obj,":")
-						labelName = append(labelName,objSlice[1])
-						metricNamePrefix =fmt.Sprintf("%s_",objSlice[0])
-						metricNameSuffix = fmt.Sprintf("_per_%s",objSlice[1])
+					if strings.Contains(object,":") {
+						objectSlice :=strings.Split(object,":")
+						labelName = append(labelName,objectSlice[1])
+						metricNamePrefix =fmt.Sprintf("%s_",objectSlice[0])
+						metricNameSuffix = fmt.Sprintf("_per_%s",objectSlice[1])
 
 					}else{
-						labelName = append(labelName,obj)
-						metricNamePrefix =fmt.Sprintf("%s_",obj)
+						labelName = append(labelName,object)
+						metricNamePrefix =fmt.Sprintf("%s_",object)
 						metricNameSuffix=""
 					}
 					
 					var metricMap = make(map[string]float64)
-
-					for _,perfCounterData := range instanceData.Counters.CounterData{
+					perfCounterDataSlice := perfInstanceData.Counters.CounterData  // CounterData is slice which contains all conter-data for one instance
+					for _,perfCounterData := range perfCounterDataSlice{
 							if  ( perfCounterData.Name =="node_name" ||  perfCounterData.Name == "vserver_name" || perfCounterData.Name == "cpu_name"  ){
 									labelName=append(labelName,strings.Split(perfCounterData.Name,"_")[0])
 									if perfCounterData.Value == "Multiple_Values" {
@@ -134,7 +134,7 @@ func GetPerfObjectInstanceInfo(netappClient *netapp.Client, objectName string ) 
 	if err != nil {
 		log.Printf("%s", err)
 	}
-	r = resp.Results.PerfObjectInstanceData.Instances
+	r = resp.Results.PerfObjectInstanceData.Instances // this return a slice of InstanceData, wich contains multiple instances, each instance contains  arbitrary counts of counter-data 
 	 
 	return
 }
@@ -148,6 +148,6 @@ func GetPerfObjectInstanceList(netappClient *netapp.Client, objectName string) (
  	}
 	resp,_,_ := netappClient.Perf.PerfObjectInstanceListInfoIter(opts)
 	
-  r=resp.Results.AttributesList.InstanceInfo
+  r=resp.Results.AttributesList.InstanceInfo // return a slice of instances
   return 
 }
