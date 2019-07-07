@@ -37,8 +37,9 @@ var scrapers = []Scraper {
 		ScrapeAggr{},
 		ScrapeVserver{},
 		ScrapeVolume{},
-		ScrapePerf{},
 		ScrapeLun{},
+		ScrapeSnapshot{},
+		ScrapePerf{},
 		}
 
 func New(netappClient *netapp.Client) *Exporter {
