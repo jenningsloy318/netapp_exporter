@@ -4,7 +4,6 @@ import (
 	"log"
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
-	"strconv"
 )
 
 
@@ -70,13 +69,12 @@ type Node struct {
 func (ScrapeSystem) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, NodeInfo := range GetNodeData(netappClient) {
-		if uptime,err :=  strconv.ParseFloat(NodeInfo.Uptime, 64); err == nil{
+		if uptime,ok :=  parseStatus(NodeInfo.Uptime); ok{
 			ch <- prometheus.MustNewConstMetric(systemNodeUptimeDesc, prometheus.GaugeValue,uptime, NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
 	 }
 	 ch <- prometheus.MustNewConstMetric(systemNodeFailedFanCountDesc, prometheus.GaugeValue,float64(NodeInfo.EnvFailedFanCount), NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
 	 ch <- prometheus.MustNewConstMetric(systemNodeFailedPowerSupplyCountDesc, prometheus.GaugeValue,float64(NodeInfo.EnvFailedPowerSupplyCount), NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
-	 var b2f = map[bool]float64{false: 0, true: 1}
-	 ch <- prometheus.MustNewConstMetric(systemNodeOverTemperatureDesc, prometheus.GaugeValue,b2f[NodeInfo.EnvOverTemperature], NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
+	 ch <- prometheus.MustNewConstMetric(systemNodeOverTemperatureDesc, prometheus.GaugeValue,boolToFloat64(NodeInfo.EnvOverTemperature), NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
 	 
 	}
 	return nil
