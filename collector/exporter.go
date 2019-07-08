@@ -21,6 +21,7 @@ var (
 		"Collector time duration.",
 		[]string{"collector"}, nil,
 	)
+	FilerLabelValue string
 )
 
 // Exporter collects NetAPP metrics. It implements prometheus.Collector.
@@ -42,8 +43,8 @@ var scrapers = []Scraper {
 		ScrapePerf{},
 		}
 
-func New(netappClient *netapp.Client) *Exporter {
-
+func New(Filername string,netappClient *netapp.Client) *Exporter {
+	FilerLabelValue = Filername
 	return &Exporter{
 		netappClient:      netappClient,
 		scrapers: scrapers,

@@ -32,7 +32,7 @@ func loadFilerFromFile(fileName string) (c []*Filer) {
 	return
 }
 
-func newNetappClient(filer *Filer) *netapp.Client {
+func newNetappClient(filer *Filer) (string, *netapp.Client) {
 
 	_url := "https://%s/servlets/netapp.servlets.admin.XMLrequest_filer"
 	url := fmt.Sprintf(_url, filer.Host)
@@ -43,8 +43,9 @@ func newNetappClient(filer *Filer) *netapp.Client {
 		BasicAuthUser:     filer.Username,
 		BasicAuthPassword: filer.Password,
 		SSLVerify:         false,
+		Debug:						 true,
 		Timeout:           30 * time.Second,
 	}
-
-	return netapp.NewClient(url, version, opts)
+	netappClient :=netapp.NewClient(url, version, opts)
+	return filer.Name, netappClient
 }

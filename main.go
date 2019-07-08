@@ -29,8 +29,8 @@ func metricsHandler() http.HandlerFunc {
 
 		filers := loadFilerFromFile(*configFile)
 		for _, f := range filers {
-			netappClient := newNetappClient(f)
-			collector := collector.New(netappClient)
+			filerName,netappClient := newNetappClient(f)
+			collector := collector.New(filerName,netappClient)
 			registry.MustRegister(collector)
 		}
 		gatherers := prometheus.Gatherers{
