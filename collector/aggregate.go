@@ -191,9 +191,9 @@ func getAggrList(netappClient *netapp.Client,opts *netapp.AggrOptions ) (r []net
 	return
 }
 
-var AggrSpaceData = make(map[string]string)
 
-func GetAggrSpaceData(netappClient *netapp.Client, aggrName string) (AggrSpaceData map[string]string) {
+
+func GetAggrSpaceData(netappClient *netapp.Client, aggrName string) map[string]string {
 	opts := &netapp.AggrSpaceOptions{
 		Query:  &netapp.AggrSpaceInfoQuery{
 			AggrSpaceInfo: &netapp.AggrSpaceInfo{
@@ -206,7 +206,8 @@ func GetAggrSpaceData(netappClient *netapp.Client, aggrName string) (AggrSpaceDa
 			},
 		},
 	}
+	var AggrSpaceData = make(map[string]string)
 	l,_,_ := netappClient.AggregateSpace.List(opts)
 	AggrSpaceData["SnapSizeTotal"]=l.Results.AttributesList.AggrAttributes[0].SnapSizeTotal
-	return
+	return AggrSpaceData
 }
