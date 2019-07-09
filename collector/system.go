@@ -17,22 +17,23 @@ const (
 
 // Metric descriptors.
 var (
+	systemLabels = []string{"filer","node", "model", "location"}
 	systemNodeUptimeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SystemSubsystem, "uptime"),
 		"uptime of the node.",
-		[]string{"name", "model", "location", "uuid"}, nil)
+		systemLabels, nil)
 	systemNodeFailedFanCountDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SystemSubsystem, "failed_fan_count"),
 		"Failed Fan Count of the node.",
-		[]string{"name", "model", "location", "uuid"}, nil)
+		systemLabels, nil)
 	systemNodeFailedPowerSupplyCountDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SystemSubsystem, "failed_powersupply_count"),
 		"Failed PowerSupply Count of the node.",
-		[]string{"name", "model", "location", "uuid"}, nil)
+		systemLabels, nil)
 	systemNodeOverTemperatureDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SystemSubsystem, "over_temperature"),
 		"Over Temperature of the node.",
-		[]string{"name", "model", "location", "uuid"}, nil)
+		systemLabels, nil)
 
 )
 
@@ -69,12 +70,13 @@ type Node struct {
 func (ScrapeSystem) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, NodeInfo := range GetNodeData(netappClient) {
+		systemLabelValues := []string{FilerLabelValue,NodeInfo.Name, NodeInfo.Model, NodeInfo.Location}
 		if uptime,ok :=  parseStatus(NodeInfo.Uptime); ok{
-			ch <- prometheus.MustNewConstMetric(systemNodeUptimeDesc, prometheus.GaugeValue,uptime, NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
+			ch <- prometheus.MustNewConstMetric(systemNodeUptimeDesc, prometheus.GaugeValue,uptime, systemLabelValues...)
 	 }
-	 ch <- prometheus.MustNewConstMetric(systemNodeFailedFanCountDesc, prometheus.GaugeValue,float64(NodeInfo.EnvFailedFanCount), NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
-	 ch <- prometheus.MustNewConstMetric(systemNodeFailedPowerSupplyCountDesc, prometheus.GaugeValue,float64(NodeInfo.EnvFailedPowerSupplyCount), NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
-	 ch <- prometheus.MustNewConstMetric(systemNodeOverTemperatureDesc, prometheus.GaugeValue,boolToFloat64(NodeInfo.EnvOverTemperature), NodeInfo.Name, NodeInfo.Model, NodeInfo.Location, NodeInfo.Uuid)
+	 ch <- prometheus.MustNewConstMetric(systemNodeFailedFanCountDesc, prometheus.GaugeValue,float64(NodeInfo.EnvFailedFanCount), systemLabelValues...)
+	 ch <- prometheus.MustNewConstMetric(systemNodeFailedPowerSupplyCountDesc, prometheus.GaugeValue,float64(NodeInfo.EnvFailedPowerSupplyCount), systemLabelValues...)
+	 ch <- prometheus.MustNewConstMetric(systemNodeOverTemperatureDesc, prometheus.GaugeValue,boolToFloat64(NodeInfo.EnvOverTemperature), systemLabelValues...)
 	 
 	}
 	return nil

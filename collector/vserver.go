@@ -13,18 +13,19 @@ const (
 
 // Metric descriptors.
 var (
+	vserverLabels = []string{"filer","vserver","type"}
 	VServerVolumeDeleteRetentionHoursDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "volume_delete_retention_hours"),
 		"Volume Delete Retention Hours of the vserver.",
-		[]string{"vserver","type"}, nil)
+		vserverLabels, nil)
 	VServerAdminStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "state"),
 		"Admin State of the vserver,1(running), 0(stopped), 2(starting),3(stopping), 4(initializing), or 5(deleting).",
-		[]string{"vserver","type"}, nil)
+		vserverLabels, nil)
 	VServerOperationalStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "operational_state"),
 		"Operational State of the vserver, 1(running), 0(stopped).",
-		[]string{"vserver","type"}, nil)
+		vserverLabels, nil)
 
 )
 
@@ -56,16 +57,16 @@ type VServer struct {
 func (ScrapeVserver) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, VserverInfo := range GetVserverData(netappClient) {
-		
-			ch <- prometheus.MustNewConstMetric(VServerVolumeDeleteRetentionHoursDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), VserverInfo.VserverName,VserverInfo.VserverType)
+		 vserverLabelValues :=[]string{FilerLabelValue,VserverInfo.VserverName,VserverInfo.VserverType}
+			ch <- prometheus.MustNewConstMetric(VServerVolumeDeleteRetentionHoursDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), vserverLabelValues...)
 			if len(VserverInfo.State)>0 {
 				if stateVal,ok := parseStatus(VserverInfo.State);ok{
-				ch <- prometheus.MustNewConstMetric(VServerAdminStateDesc, prometheus.GaugeValue,stateVal, VserverInfo.VserverName,VserverInfo.VserverType)
+				ch <- prometheus.MustNewConstMetric(VServerAdminStateDesc, prometheus.GaugeValue,stateVal, vserverLabelValues...)
 				}
 			}
 			if len(VserverInfo.OperationalState)>0 {
 				if opsStateVal,ok := parseStatus(VserverInfo.OperationalState); ok{
-				ch <- prometheus.MustNewConstMetric(VServerOperationalStateDesc, prometheus.GaugeValue,opsStateVal, VserverInfo.VserverName,VserverInfo.VserverType)
+				ch <- prometheus.MustNewConstMetric(VServerOperationalStateDesc, prometheus.GaugeValue,opsStateVal, vserverLabelValues...)
 				}
 			}
 	 

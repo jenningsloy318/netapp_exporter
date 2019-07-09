@@ -13,34 +13,35 @@ const (
 
 // Metric descriptors.
 var (
+	volumeLabels = []string{"filer","volume","vserver","aggr","node"}
 	VolumeSizeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size"),
 		"Size of the volume.",
-		[]string{"volume","vserver","aggr","node"}, nil)
+		volumeLabels, nil)
 	VolumeSizeAvailableDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_available"),
 		"Available Size of the volume.",
-		[]string{"volume","vserver","aggr","node"}, nil)
+		volumeLabels, nil)
 	VolumeSizeTotalDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_total"),
 		"Total Size   of the volume.",
-		[]string{"volume","vserver","aggr","node"}, nil)
+		volumeLabels, nil)
 	VolumeSizeUsedDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_used"),
 		"Used Size of the volume.",
-		[]string{"volume","vserver","aggr","node"}, nil)
+		volumeLabels, nil)
 	VolumeSizeUsedBySnapshotsDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "size_used_by_snapshots"),
 		"Used Size By Snapshots of the volume.",
-		[]string{"volume","vserver","aggr","node"}, nil)		
+		volumeLabels, nil)		
 	VolumeSizeReservedBySnapshotDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VolumeSubsystem, "snapshot_reserve_size"),
 		"Reserve Size By Snapshots of the volume.",
-		[]string{"volume","vserver","aggr","node"}, nil)		
+		volumeLabels, nil)		
 		VolumeStateDesc = prometheus.NewDesc(
 			prometheus.BuildFQName(namespace, VolumeSubsystem, "state"),
 			"State of the volume, 1 (online), 0(offline), 2(restricted), or 3(mixed).",
-			[]string{"volume","vserver","aggr","node"}, nil)		
+			volumeLabels, nil)		
 	
 	)
 
@@ -80,24 +81,25 @@ func (ScrapeVolume) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Met
 
 		
 	for _, VolumeInfo := range GetVolumeData(netappClient) {
-		ch <- prometheus.MustNewConstMetric(VolumeSizeDesc, prometheus.GaugeValue,float64(VolumeInfo.Size), VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+		vserverLabelValues :=[]string{FilerLabelValue,VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node}
+		ch <- prometheus.MustNewConstMetric(VolumeSizeDesc, prometheus.GaugeValue,float64(VolumeInfo.Size), vserverLabelValues...)
 		if sizeAvailable,ok :=  parseStatus(VolumeInfo.SizeAvailable); ok{
-			ch <- prometheus.MustNewConstMetric(VolumeSizeAvailableDesc, prometheus.GaugeValue,sizeAvailable, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+			ch <- prometheus.MustNewConstMetric(VolumeSizeAvailableDesc, prometheus.GaugeValue,sizeAvailable, vserverLabelValues...)
 		}
 		if sizeTotal,ok :=  parseStatus(VolumeInfo.SizeTotal); ok{
-			ch <- prometheus.MustNewConstMetric(VolumeSizeTotalDesc, prometheus.GaugeValue,sizeTotal, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+			ch <- prometheus.MustNewConstMetric(VolumeSizeTotalDesc, prometheus.GaugeValue,sizeTotal, vserverLabelValues...)
 		}
 		if sizeUsed,ok :=  parseStatus(VolumeInfo.SizeUsed); ok{
-			ch <- prometheus.MustNewConstMetric(VolumeSizeUsedDesc, prometheus.GaugeValue,sizeUsed, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+			ch <- prometheus.MustNewConstMetric(VolumeSizeUsedDesc, prometheus.GaugeValue,sizeUsed, vserverLabelValues...)
 		}		
 		if sizeUsedBySnapshots,ok :=  parseStatus(VolumeInfo.SizeUsedBySnapshots); ok{
-			ch <- prometheus.MustNewConstMetric(VolumeSizeUsedBySnapshotsDesc, prometheus.GaugeValue,sizeUsedBySnapshots, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+			ch <- prometheus.MustNewConstMetric(VolumeSizeUsedBySnapshotsDesc, prometheus.GaugeValue,sizeUsedBySnapshots, vserverLabelValues...)
 		}			
 		if sizeReservedBySnapshot,ok :=  parseStatus(VolumeInfo.SizeReservedBySnapshot); ok{
-			ch <- prometheus.MustNewConstMetric(VolumeSizeReservedBySnapshotDesc, prometheus.GaugeValue,sizeReservedBySnapshot, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+			ch <- prometheus.MustNewConstMetric(VolumeSizeReservedBySnapshotDesc, prometheus.GaugeValue,sizeReservedBySnapshot, vserverLabelValues...)
 		}
 		if stateVal, ok :=  parseStatus(VolumeInfo.State); ok{
-			ch <- prometheus.MustNewConstMetric(VolumeStateDesc, prometheus.GaugeValue,stateVal, VolumeInfo.Name,VolumeInfo.Vserver,VolumeInfo.Aggr,VolumeInfo.Node)
+			ch <- prometheus.MustNewConstMetric(VolumeStateDesc, prometheus.GaugeValue,stateVal, vserverLabelValues...)
 		}
 		
 	}

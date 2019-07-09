@@ -14,6 +14,7 @@ type Filer struct {
 	Host     string `yaml:"host"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
+	Debug    bool   `yaml:"debug"`
 }
 
 func loadFilerFromFile(fileName string) (c []*Filer) {
@@ -43,7 +44,7 @@ func newNetappClient(filer *Filer) (string, *netapp.Client) {
 		BasicAuthUser:     filer.Username,
 		BasicAuthPassword: filer.Password,
 		SSLVerify:         false,
-		Debug:						 true,
+		Debug:						 filer.Debug,
 		Timeout:           30 * time.Second,
 	}
 	netappClient :=netapp.NewClient(url, version, opts)

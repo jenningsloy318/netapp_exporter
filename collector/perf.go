@@ -40,8 +40,8 @@ func (ScrapePerf) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metri
 		for _,object := range objects {
 			for _,perfInstanceData := range GetPerfObjectInstanceInfo(netappClient,object) {
 				
-					var labelName   []string
-					var labelValue  []string
+					var labelName  = []string{"filer"}
+					var labelValue  = []string{FilerLabelValue,}
 
 					var metricNamePrefix string 
 					var metricNameSuffix string 

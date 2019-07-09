@@ -17,18 +17,19 @@ const (
 
 // Metric descriptors.
 var (
+	snapshotLabels = []string{"filer","snapshot","volume","vserver"}
 	snapshotTotalSizeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SnapshotSubsystem, "total_size"),
 		"Size of the snapshot.",
-		[]string{"name","volume","vserver"}, nil)
+		snapshotLabels, nil)
 	snapshotAdminStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SnapshotSubsystem, "state"),
 		"The state of  the snapshot.",
-		[]string{"name","volume","vserver"}, nil)
+		snapshotLabels, nil)
 	snapshotBusyDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SnapshotSubsystem, "is_busy"),
 		"The busy state of  the snapshot.",
-		[]string{"name","volume","vserver"}, nil)
+		snapshotLabels, nil)
 
 )
 
@@ -62,11 +63,11 @@ type Snapshot struct {
 func (ScrapeSnapshot) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, SnapshotInfo := range GetSnapshotData(netappClient) {
-
-		ch <- prometheus.MustNewConstMetric(snapshotTotalSizeDesc, prometheus.GaugeValue,float64(SnapshotInfo.Total), SnapshotInfo.Name, SnapshotInfo.Volume, SnapshotInfo.Vserver)
-		ch <- prometheus.MustNewConstMetric(snapshotBusyDesc, prometheus.GaugeValue,boolToFloat64(SnapshotInfo.Busy), SnapshotInfo.Name, SnapshotInfo.Volume, SnapshotInfo.Vserver)
+		snapshotLabelValues := []string{FilerLabelValue,SnapshotInfo.Name, SnapshotInfo.Volume, SnapshotInfo.Vserver}
+		ch <- prometheus.MustNewConstMetric(snapshotTotalSizeDesc, prometheus.GaugeValue,float64(SnapshotInfo.Total), snapshotLabelValues...)
+		ch <- prometheus.MustNewConstMetric(snapshotBusyDesc, prometheus.GaugeValue,boolToFloat64(SnapshotInfo.Busy), snapshotLabelValues...)
 		if value,ok :=parseStatus(SnapshotInfo.State);ok {
-			ch <- prometheus.MustNewConstMetric(snapshotAdminStateDesc, prometheus.GaugeValue,value, SnapshotInfo.Name, SnapshotInfo.Volume, SnapshotInfo.Vserver)
+			ch <- prometheus.MustNewConstMetric(snapshotAdminStateDesc, prometheus.GaugeValue,value, snapshotLabelValues...)
 		}	 
 	}
 	return nil

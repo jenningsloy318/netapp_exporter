@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/SAP/go-hdb v0.14.1
-	github.com/pepabo/go-netapp v0.0.0-20190708014945-93e6e21b0f16
+	github.com/pepabo/go-netapp v0.0.0-20190709011341-098f517a4da4
 	github.com/prometheus/client_golang v0.9.3
 	github.com/prometheus/common v0.4.1
 	github.com/sirupsen/logrus v1.2.0
