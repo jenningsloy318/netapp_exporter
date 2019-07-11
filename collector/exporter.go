@@ -1,11 +1,12 @@
 package collector
 
 import (
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
-	"github.com/pepabo/go-netapp/netapp"
 	"sync"
 	"time"
+
+	"github.com/pepabo/go-netapp/netapp"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/common/log"
 )
 
 // Metric name parts.
@@ -21,33 +22,36 @@ var (
 		"Collector time duration.",
 		[]string{"collector"}, nil,
 	)
-	FilerLabelValue string
+
+	BaseLabelNames  = []string{"filer", "cluster"}
+	BaseLabelValues []string
 )
 
 // Exporter collects NetAPP metrics. It implements prometheus.Collector.
 type Exporter struct {
-	netappClient    *netapp.Client
+	netappClient *netapp.Client
 	error        prometheus.Gauge
 	scrapers     []Scraper
 	totalScrapes prometheus.Counter
 	scrapeErrors *prometheus.CounterVec
-	netappUp       prometheus.Gauge
+	netappUp     prometheus.Gauge
 }
-var scrapers = []Scraper {
-		ScrapeSystem{},
-		ScrapeAggr{},
-		ScrapeVserver{},
-		ScrapeVolume{},
-		ScrapeLun{},
-		ScrapeSnapshot{},
-		ScrapePerf{},
-		}
 
-func New(Filername string,netappClient *netapp.Client) *Exporter {
-	FilerLabelValue = Filername
+var scrapers = []Scraper{
+	ScrapeSystem{},
+	ScrapeAggr{},
+	ScrapeVserver{},
+	ScrapeVolume{},
+	ScrapeLun{},
+	ScrapeSnapshot{},
+	ScrapePerf{},
+}
+
+func New(Filername string, netappClient *netapp.Client) *Exporter {
+	BaseLabelValues = append(BaseLabelValues, Filername)
 	return &Exporter{
-		netappClient:      netappClient,
-		scrapers: scrapers,
+		netappClient: netappClient,
+		scrapers:     scrapers,
 		totalScrapes: prometheus.NewCounter(prometheus.CounterOpts{
 			Namespace: namespace,
 			Subsystem: exporter,
@@ -113,12 +117,18 @@ func (e *Exporter) Collect(ch chan<- prometheus.Metric) {
 	e.scrapeErrors.Collect(ch)
 }
 
-
 func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	e.totalScrapes.Inc()
 	scrapeTime := time.Now()
 	e.netappUp.Set(0)
 	ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(scrapeTime).Seconds(), "connection")
+
+	if clusterName, ok := GetClusterIdentity(e.netappClient)["clusterName"]; ok {
+
+		e.netappUp.Set(1)
+		BaseLabelValues = append(BaseLabelValues, clusterName)
+
+	}
 
 	wg := &sync.WaitGroup{}
 	defer wg.Wait()
@@ -133,8 +143,23 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 				e.scrapeErrors.WithLabelValues(label).Inc()
 				e.error.Set(1)
 			}
-			e.netappUp.Set(1)
+
 			ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(scrapeTime).Seconds(), label)
 		}(scraper)
 	}
+}
+
+func GetClusterIdentity(netappClient *netapp.Client) map[string]string {
+
+	clusterIdentity := make(map[string]string)
+	ops := &netapp.ClusterIdentityOptions{
+		DesiredAttributes: &netapp.ClusterIdentityInfo{},
+	}
+
+	l, _, _ := netappClient.ClusterIdentity.List(ops)
+
+	clusterIdentity["clusterName"] = l.Results.ClusterIdentityInfo[0].ClusterName
+	clusterIdentity["clusterSerialNumber"] = l.Results.ClusterIdentityInfo[0].ClusterSerialNumber
+	clusterIdentity["clusterLocation"] = l.Results.ClusterIdentityInfo[0].ClusterLocation
+	return clusterIdentity
 }
