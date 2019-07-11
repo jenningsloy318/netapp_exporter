@@ -2,13 +2,10 @@ package collector
 
 import (
 	"log"
+
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
 )
-
-
-
-
 
 const (
 	// Subsystem.
@@ -17,7 +14,8 @@ const (
 
 // Metric descriptors.
 var (
-	snapshotLabels = []string{"filer","snapshot","volume","vserver"}
+	snapshotLabels = append(BaseLabelNames, "snapshot", "volume", "vserver")
+
 	snapshotTotalSizeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, SnapshotSubsystem, "total_size"),
 		"Size of the snapshot.",
@@ -30,9 +28,7 @@ var (
 		prometheus.BuildFQName(namespace, SnapshotSubsystem, "is_busy"),
 		"The busy state of  the snapshot.",
 		snapshotLabels, nil)
-
 )
-
 
 // Scrapesystem collects system node info
 type ScrapeSnapshot struct{}
@@ -47,72 +43,65 @@ func (ScrapeSnapshot) Help() string {
 	return "Collect Netapp Snapshot info;"
 }
 
-
 type Snapshot struct {
-	Name                              string
-	Busy                              bool
-	State                             string  
-	Total                             int     
-	Volume                            string  
-	Vserver                           string  
-
+	Name    string
+	Busy    bool
+	State   string
+	Total   int
+	Volume  string
+	Vserver string
 }
 
-
-// Scrape collects data from  netapp system and node info 
+// Scrape collects data from  netapp system and node info
 func (ScrapeSnapshot) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, SnapshotInfo := range GetSnapshotData(netappClient) {
-		snapshotLabelValues := []string{FilerLabelValue,SnapshotInfo.Name, SnapshotInfo.Volume, SnapshotInfo.Vserver}
-		ch <- prometheus.MustNewConstMetric(snapshotTotalSizeDesc, prometheus.GaugeValue,float64(SnapshotInfo.Total), snapshotLabelValues...)
-		ch <- prometheus.MustNewConstMetric(snapshotBusyDesc, prometheus.GaugeValue,boolToFloat64(SnapshotInfo.Busy), snapshotLabelValues...)
-		if value,ok :=parseStatus(SnapshotInfo.State);ok {
-			ch <- prometheus.MustNewConstMetric(snapshotAdminStateDesc, prometheus.GaugeValue,value, snapshotLabelValues...)
-		}	 
+		snapshotLabelValues := append(BaseLabelValues, SnapshotInfo.Name, SnapshotInfo.Volume, SnapshotInfo.Vserver)
+		ch <- prometheus.MustNewConstMetric(snapshotTotalSizeDesc, prometheus.GaugeValue, float64(SnapshotInfo.Total), snapshotLabelValues...)
+		ch <- prometheus.MustNewConstMetric(snapshotBusyDesc, prometheus.GaugeValue, boolToFloat64(SnapshotInfo.Busy), snapshotLabelValues...)
+		if value, ok := parseStatus(SnapshotInfo.State); ok {
+			ch <- prometheus.MustNewConstMetric(snapshotAdminStateDesc, prometheus.GaugeValue, value, snapshotLabelValues...)
+		}
 	}
 	return nil
 }
 
-
-
-
-
 func GetSnapshotData(netappClient *netapp.Client) (r []*Snapshot) {
-	opts := &netapp.SnapshotOptions {
+	opts := &netapp.SnapshotOptions{
 		Query: &netapp.SnapshotQuery{},
 		DesiredAttributes: &netapp.SnapshotQuery{
-			SnapshotInfo : &netapp.SnapshotInfo{
-				Name                      :"x",
-				Volume                    :"x",   
-				Vserver                   :"x",
-				Busy                      :true,
-				State                     :"x", 
-				Total                     :1,
+			SnapshotInfo: &netapp.SnapshotInfo{
+				Name:    "x",
+				Volume:  "x",
+				Vserver: "x",
+				Busy:    true,
+				State:   "x",
+				Total:   1,
 			},
 		},
 	}
 
-	l := getSnapshotList(netappClient,opts)
+	l := getSnapshotList(netappClient, opts)
 
 	for _, n := range l {
 		r = append(r, &Snapshot{
-			Name                      :n.Name,
-			Volume                    :n.Volume,
-			Vserver                   :n.Vserver,
-			Busy                      :n.Busy,
-			State                     :n.State,
-			Total                     :n.Total,
-			})
+			Name:    n.Name,
+			Volume:  n.Volume,
+			Vserver: n.Vserver,
+			Busy:    n.Busy,
+			State:   n.State,
+			Total:   n.Total,
+		})
 	}
 	return
 }
 
 func getSnapshotList(netappClient *netapp.Client, opts *netapp.SnapshotOptions) (r []netapp.SnapshotInfo) {
 
-	var pages []*netapp.SnapshotListResponse 
+	var pages []*netapp.SnapshotListResponse
 	handler := func(r netapp.SnapshotListPagesResponse) bool {
 		if r.Error != nil {
-				log.Printf("%s", r.Error)
+			log.Printf("%s", r.Error)
 			return false
 		}
 		pages = append(pages, r.Response)

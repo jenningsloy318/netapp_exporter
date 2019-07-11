@@ -1,7 +1,7 @@
 package collector
 
 import (
-//	"log"
+	//	"log"
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -13,7 +13,7 @@ const (
 
 // Metric descriptors.
 var (
-	vserverLabels = []string{"filer","vserver","type"}
+	vserverLabels                         = append(BaseLabelNames, "vserver", "type")
 	VServerVolumeDeleteRetentionHoursDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, VserverSubsystem, "volume_delete_retention_hours"),
 		"Volume Delete Retention Hours of the vserver.",
@@ -26,9 +26,7 @@ var (
 		prometheus.BuildFQName(namespace, VserverSubsystem, "operational_state"),
 		"Operational State of the vserver, 1(running), 0(stopped).",
 		vserverLabels, nil)
-
 )
-
 
 // Scrapesystem collects system vserver info
 type ScrapeVserver struct{}
@@ -43,55 +41,49 @@ func (ScrapeVserver) Help() string {
 	return "Collect Netapp Vserver info;"
 }
 
-
 type VServer struct {
-	VserverName                   string
-	VserverType                  string
-	VolumeDeleteRetentionHours    int
-	State                         string
-	OperationalState              string
+	VserverName                string
+	VserverType                string
+	VolumeDeleteRetentionHours int
+	State                      string
+	OperationalState           string
 }
 
-
-// Scrape collects data from  netapp system and vserver info 
+// Scrape collects data from  netapp system and vserver info
 func (ScrapeVserver) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, VserverInfo := range GetVserverData(netappClient) {
-		 vserverLabelValues :=[]string{FilerLabelValue,VserverInfo.VserverName,VserverInfo.VserverType}
-			ch <- prometheus.MustNewConstMetric(VServerVolumeDeleteRetentionHoursDesc, prometheus.GaugeValue,float64(VserverInfo.VolumeDeleteRetentionHours), vserverLabelValues...)
-			if len(VserverInfo.State)>0 {
-				if stateVal,ok := parseStatus(VserverInfo.State);ok{
-				ch <- prometheus.MustNewConstMetric(VServerAdminStateDesc, prometheus.GaugeValue,stateVal, vserverLabelValues...)
-				}
+		vserverLabelValues := append(BaseLabelValues, VserverInfo.VserverName, VserverInfo.VserverType)
+		ch <- prometheus.MustNewConstMetric(VServerVolumeDeleteRetentionHoursDesc, prometheus.GaugeValue, float64(VserverInfo.VolumeDeleteRetentionHours), vserverLabelValues...)
+		if len(VserverInfo.State) > 0 {
+			if stateVal, ok := parseStatus(VserverInfo.State); ok {
+				ch <- prometheus.MustNewConstMetric(VServerAdminStateDesc, prometheus.GaugeValue, stateVal, vserverLabelValues...)
 			}
-			if len(VserverInfo.OperationalState)>0 {
-				if opsStateVal,ok := parseStatus(VserverInfo.OperationalState); ok{
-				ch <- prometheus.MustNewConstMetric(VServerOperationalStateDesc, prometheus.GaugeValue,opsStateVal, vserverLabelValues...)
-				}
+		}
+		if len(VserverInfo.OperationalState) > 0 {
+			if opsStateVal, ok := parseStatus(VserverInfo.OperationalState); ok {
+				ch <- prometheus.MustNewConstMetric(VServerOperationalStateDesc, prometheus.GaugeValue, opsStateVal, vserverLabelValues...)
 			}
-	 
+		}
+
 	}
 	return nil
 }
 
-
-
-
-
 func GetVserverData(netappClient *netapp.Client) (r []*VServer) {
-	opts := &netapp.VServerOptions  {
-		Query: &netapp.VServerQuery {},
-		DesiredAttributes: &netapp.VServerQuery {
+	opts := &netapp.VServerOptions{
+		Query: &netapp.VServerQuery{},
+		DesiredAttributes: &netapp.VServerQuery{
 			VServerInfo: &netapp.VServerInfo{
-			VserverName                        :"x",
-			VserverType                        :"x",
-			VolumeDeleteRetentionHours         :1,
-			State                              :"x",
-			OperationalState                   :"x",
+				VserverName:                "x",
+				VserverType:                "x",
+				VolumeDeleteRetentionHours: 1,
+				State:                      "x",
+				OperationalState:           "x",
 			},
 		},
 	}
-	l,_,_ := netappClient.VServer.List(opts)
+	l, _, _ := netappClient.VServer.List(opts)
 	for _, n := range l.Results.AttributesList.VserverInfo {
 		r = append(r, &VServer{
 			VserverName:                n.VserverName,
