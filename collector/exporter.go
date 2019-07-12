@@ -23,8 +23,9 @@ var (
 		[]string{"collector"}, nil,
 	)
 
-	BaseLabelNames  = []string{"filer", "cluster"}
-	BaseLabelValues []string
+	BaseLabelNames = []string{"filer", "cluster"}
+
+	BaseLabelValues = make([]string, 2, 2)
 )
 
 // Exporter collects NetAPP metrics. It implements prometheus.Collector.
@@ -48,7 +49,7 @@ var scrapers = []Scraper{
 }
 
 func New(Filername string, netappClient *netapp.Client) *Exporter {
-	BaseLabelValues = append(BaseLabelValues, Filername)
+	BaseLabelValues[0] = Filername
 	return &Exporter{
 		netappClient: netappClient,
 		scrapers:     scrapers,
@@ -126,7 +127,7 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	if clusterName, ok := GetClusterIdentity(e.netappClient)["clusterName"]; ok {
 
 		e.netappUp.Set(1)
-		BaseLabelValues = append(BaseLabelValues, clusterName)
+		BaseLabelValues[1] = clusterName
 
 	}
 

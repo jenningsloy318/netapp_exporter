@@ -17,7 +17,7 @@ var (
 	listenAddress = kingpin.Flag(
 		"web.listen-address",
 		"Address to listen on for web interface and telemetry.",
-	).Default(":9109").String()
+	).Default(":9609").String()
 
 	reloadCh chan chan error
 )

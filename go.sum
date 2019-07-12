@@ -19,6 +19,8 @@ github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7a
 github.com/golang/protobuf v1.2.0/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.3.1 h1:YF8+flBXS5eO826T4nzqPrxfhQThhXl0YzfuUPu4SBg=
 github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
+github.com/jenningsloy318/go-netapp v0.0.0-20190711120511-8f1fffaab6cb h1:x0D4+JePWl2mGkprF1zCAI/fyBtu9neoCivRtxKa14Y=
+github.com/jenningsloy318/go-netapp v0.0.0-20190711120511-8f1fffaab6cb/go.mod h1:e8WTZidR5Kh5pluGZwbvn7N69Sfc0feP+2k7of3Yg2w=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/konsorten/go-windows-terminal-sequences v1.0.1/go.mod h1:T0+1ngSBFLxvqU3pZ+m/2kptfBszLMUkC4ZK/EgS/cQ=
 github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFBFZlji/RkVcI2GknAs/DXo4wKdlNEc=
@@ -32,6 +34,10 @@ github.com/pepabo/go-netapp v0.0.0-20190708014945-93e6e21b0f16 h1:czUuLuEWd6V6je
 github.com/pepabo/go-netapp v0.0.0-20190708014945-93e6e21b0f16/go.mod h1:K3yWZZ9G3fnKg5gAt4VLt0GUlVFxxEu61NbOVBZuHLA=
 github.com/pepabo/go-netapp v0.0.0-20190709011341-098f517a4da4 h1:xoWfSVDilBCePUttbsI887NatjC3i4OjC+j+zmXwPUU=
 github.com/pepabo/go-netapp v0.0.0-20190709011341-098f517a4da4/go.mod h1:K3yWZZ9G3fnKg5gAt4VLt0GUlVFxxEu61NbOVBZuHLA=
+github.com/pepabo/go-netapp v0.0.0-20190712025301-23ce0a121367 h1:bjTdSzWn0isAHV0PdVvh8jtUfk25vFDEUbSJMLQCk1k=
+github.com/pepabo/go-netapp v0.0.0-20190712025301-23ce0a121367/go.mod h1:K3yWZZ9G3fnKg5gAt4VLt0GUlVFxxEu61NbOVBZuHLA=
+github.com/peterq/pan-light v0.0.0-20190708042645-e4f3a0483989 h1:vYi1Bn6BHPWJbPawCBAB1AFXBm6bLsCYQDe7OKr/RIY=
+github.com/peterq/pan-light v0.0.0-20190708042645-e4f3a0483989/go.mod h1:O5++Ic9nE4u/sRcbdfnvdCQg87+KbyiQrVUlk8IkaWU=
 github.com/pkg/errors v0.8.0/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/prometheus/client_golang v0.9.1/go.mod h1:7SWBe2y4D6OKWSNQJUaRYU/AaXPKyh/dDVn+NZz0KFw=

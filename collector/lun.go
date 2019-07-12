@@ -2,13 +2,10 @@ package collector
 
 import (
 	"log"
+
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
 )
-
-
-
-
 
 const (
 	// Subsystem.
@@ -17,28 +14,28 @@ const (
 
 // Metric descriptors.
 var (
+	lunLabels   = append(BaseLabelNames, "volume", "node", "vserver")
 	lunSizeDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, LunSubsystem, "size"),
 		"Size of the lun.",
-		[]string{"volume","node", "vserver"}, nil)
+		lunLabels, nil)
 	lunSizeUsedDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, LunSubsystem, "size_used"),
 		"Size Used of the lun.",
-		[]string{"volume","node", "vserver"}, nil)
+		lunLabels, nil)
 	lunStagingStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, LunSubsystem, "is_staging"),
 		"whether the lun is  staging state.",
-		[]string{"volume","node", "vserver"}, nil)
+		lunLabels, nil)
 	lunOnlineStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, LunSubsystem, "is_online"),
 		"whether the lun is  online state.",
-		[]string{"volume","node", "vserver"}, nil)
+		lunLabels, nil)
 	lunAdminStateDesc = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, LunSubsystem, "state"),
 		"the state of  the lun.",
-		[]string{"volume","node", "vserver"}, nil)
+		lunLabels, nil)
 )
-
 
 // Scrapesystem collects system node info
 type ScrapeLun struct{}
@@ -53,81 +50,73 @@ func (ScrapeLun) Help() string {
 	return "Collect Netapp Lun info;"
 }
 
-
 type Lun struct {
-	
-	Node                      string
-	Volume                    string    
-	Vserver                   string
-	Size                      int     
-	SizeUsed                  int       
-	Staging                   bool  
-	Online                    bool
-	State                     string   
-
+	Node     string
+	Volume   string
+	Vserver  string
+	Size     int
+	SizeUsed int
+	Staging  bool
+	Online   bool
+	State    string
 }
 
-
-// Scrape collects data from  netapp system and node info 
+// Scrape collects data from  netapp system and node info
 func (ScrapeLun) Scrape(netappClient *netapp.Client, ch chan<- prometheus.Metric) error {
 
 	for _, LunInfo := range GetLunData(netappClient) {
-
-		ch <- prometheus.MustNewConstMetric(lunSizeDesc, prometheus.GaugeValue,float64(LunInfo.Size), LunInfo.Volume, LunInfo.Node, LunInfo.Vserver)
-		ch <- prometheus.MustNewConstMetric(lunSizeUsedDesc, prometheus.GaugeValue,float64(LunInfo.SizeUsed), LunInfo.Volume, LunInfo.Node, LunInfo.Vserver)
-		ch <- prometheus.MustNewConstMetric(lunStagingStateDesc, prometheus.GaugeValue,boolToFloat64(LunInfo.Staging), LunInfo.Volume, LunInfo.Node, LunInfo.Vserver)
-		ch <- prometheus.MustNewConstMetric(lunOnlineStateDesc, prometheus.GaugeValue,boolToFloat64(LunInfo.Online), LunInfo.Volume, LunInfo.Node, LunInfo.Vserver)
-		if value,ok :=parseStatus(LunInfo.State);ok {
-			ch <- prometheus.MustNewConstMetric(lunAdminStateDesc, prometheus.GaugeValue,value, LunInfo.Volume, LunInfo.Node, LunInfo.Vserver)
-		}	 
+		lunLabelValues := append(BaseLabelValues, LunInfo.Volume, LunInfo.Node, LunInfo.Vserver)
+		ch <- prometheus.MustNewConstMetric(lunSizeDesc, prometheus.GaugeValue, float64(LunInfo.Size), lunLabelValues...)
+		ch <- prometheus.MustNewConstMetric(lunSizeUsedDesc, prometheus.GaugeValue, float64(LunInfo.SizeUsed), lunLabelValues...)
+		ch <- prometheus.MustNewConstMetric(lunStagingStateDesc, prometheus.GaugeValue, boolToFloat64(LunInfo.Staging), lunLabelValues...)
+		ch <- prometheus.MustNewConstMetric(lunOnlineStateDesc, prometheus.GaugeValue, boolToFloat64(LunInfo.Online), lunLabelValues...)
+		if value, ok := parseStatus(LunInfo.State); ok {
+			ch <- prometheus.MustNewConstMetric(lunAdminStateDesc, prometheus.GaugeValue, value, lunLabelValues...)
+		}
 	}
 	return nil
 }
 
-
-
-
-
 func GetLunData(netappClient *netapp.Client) (r []*Lun) {
-	opts := &netapp.LunOptions {
+	opts := &netapp.LunOptions{
 		Query: &netapp.LunQuery{},
 		DesiredAttributes: &netapp.LunQuery{
-			LunInfo : &netapp.LunInfo{
-				Node                      :"x",
-				Volume                    :"x",   
-				Vserver                   :"x",
-				Size                      :1,    
-				SizeUsed                  :1,     
-				Staging                   :false,
-				Online                    :true,
-				State                     :"x", 
+			LunInfo: &netapp.LunInfo{
+				Node:     "x",
+				Volume:   "x",
+				Vserver:  "x",
+				Size:     1,
+				SizeUsed: 1,
+				Staging:  false,
+				Online:   true,
+				State:    "x",
 			},
 		},
 	}
 
-	l := getLunList(netappClient,opts)
+	l := getLunList(netappClient, opts)
 
 	for _, n := range l {
 		r = append(r, &Lun{
-			Node                      :n.Node,
-			Volume                    :n.Volume,    
-			Vserver                   :n.Vserver,
-			Size                      :n.Size,     
-			SizeUsed                  :n.SizeUsed,       
-			Staging                   :n.Staging,  
-			Online                    :n.Online,
-			State                     :n.State,   
-				})
+			Node:     n.Node,
+			Volume:   n.Volume,
+			Vserver:  n.Vserver,
+			Size:     n.Size,
+			SizeUsed: n.SizeUsed,
+			Staging:  n.Staging,
+			Online:   n.Online,
+			State:    n.State,
+		})
 	}
 	return
 }
 
 func getLunList(netappClient *netapp.Client, opts *netapp.LunOptions) (r []netapp.LunInfo) {
 
-	var pages []*netapp.LunListResponse 
+	var pages []*netapp.LunListResponse
 	handler := func(r netapp.LunListPagesResponse) bool {
 		if r.Error != nil {
-				log.Printf("%s", r.Error)
+			log.Printf("%s", r.Error)
 			return false
 		}
 		pages = append(pages, r.Response)
