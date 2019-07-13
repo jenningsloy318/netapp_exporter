@@ -43,6 +43,16 @@ func metricsHandler() http.HandlerFunc {
 	}
 }
 
+
+var Vsersion string 
+var BuildRevision string
+var BuildBranch string
+var BuildTime string
+var BuildHost string 
+func init() {
+	log.Infof("netapp_exporter version %s, build reversion %s, build branch %s, build at %s on host %s",Vsersion,BuildRevision,BuildBranch,BuildTime,BuildHost)
+}
+
 func main() {
 	log.AddFlags(kingpin.CommandLine)
 	kingpin.HelpFlag.Short('h')
