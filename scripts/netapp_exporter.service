@@ -1,0 +1,11 @@
+[Unit]
+Description=netapp exporter  service
+
+[Service]
+ExecStart=/usr/bin/netapp_exporter --config.file=/etc/prometheus/netapp_exporter.yml 
+Restart=always
+RestartSec=2s
+StartLimitInterval=0
+KillMode=process
+[Install]
+WantedBy=multi-user.target
