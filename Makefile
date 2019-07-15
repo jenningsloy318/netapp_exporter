@@ -62,7 +62,7 @@ build:
 	$(GO) build  -o $(BIN_DIR)/netapp_exporter  -ldflags  '-X "main.Vsersion=$(VERSION)" -X  "main.BuildRevision=$(REVERSION)" -X  "main.BuildBranch=$(BRANCH)" -X "main.BuildTime=$(TIME)" -X "main.BuildHost=$(HOST)"'
 
 rpm: | build
-	@echo ">> building binaries"
+	@echo ">> building rpm package"
 	$(RPM) 
 
 fmt:
