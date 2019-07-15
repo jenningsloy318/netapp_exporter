@@ -61,9 +61,9 @@ build:
 	@echo ">> building binaries"
 	$(GO) build  -o $(BIN_DIR)/netapp_exporter  -ldflags  '-X "main.Vsersion=$(VERSION)" -X  "main.BuildRevision=$(REVERSION)" -X  "main.BuildBranch=$(BRANCH)" -X "main.BuildTime=$(TIME)" -X "main.BuildHost=$(HOST)"'
 
-buildrpm: | build
+rpm: | build
 	@echo ">> building binaries"
-	$(RPM) build
+	$(RPM) 
 
 fmt:
 	@echo ">> format code style"
