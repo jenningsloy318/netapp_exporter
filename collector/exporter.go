@@ -48,8 +48,8 @@ var scrapers = []Scraper{
 	ScrapePerf{},
 }
 
-func New(Filername string, netappClient *netapp.Client) *Exporter {
-	BaseLabelValues[0] = Filername
+func New(Groupname string, netappClient *netapp.Client) *Exporter {
+	BaseLabelValues[0] = Groupname
 	return &Exporter{
 		netappClient: netappClient,
 		scrapers:     scrapers,
