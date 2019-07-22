@@ -1,7 +1,7 @@
 %define debug_package %{nil}
 
 Name:    netapp_exporter
-Version: 0.10.0
+Version: 0.10.1
 Release: 1%{?dist}
 Summary: Prometheus NetApp exporter.
 License: MIT
