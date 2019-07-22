@@ -23,7 +23,7 @@ var (
 		[]string{"collector"}, nil,
 	)
 
-	BaseLabelNames = []string{"filer", "cluster"}
+	BaseLabelNames = []string{"group", "cluster"}
 
 	BaseLabelValues = make([]string, 2, 2)
 )

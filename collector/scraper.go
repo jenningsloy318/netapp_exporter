@@ -6,7 +6,7 @@ import (
 	"github.com/pepabo/go-netapp/netapp"
 )
 
-// Scraper is minimal interface that let's you add new prometheus metrics to mysqld_exporter.
+// Scraper is minimal interface that let's you add new prometheus metrics to netapp_exporter.
 type Scraper interface {
 	// Name of the Scraper. Should be unique.
 	Name() string

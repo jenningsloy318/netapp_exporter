@@ -18,7 +18,9 @@ var (
 		"web.listen-address",
 		"Address to listen on for web interface and telemetry.",
 	).Default(":9609").String()
-
+	sc         = &SafeConfig{
+		C: &Config{},
+	}
 	reloadCh chan chan error
 )
 
@@ -27,12 +29,24 @@ func metricsHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		registry := prometheus.NewRegistry()
 
-		filers := loadFilerFromFile(*configFile)
-		for _, f := range filers {
-			filerName,netappClient := newNetappClient(f)
-			collector := collector.New(filerName,netappClient)
-			registry.MustRegister(collector)
+		target := r.URL.Query().Get("target")
+		if target == "" {
+			http.Error(w, "'target' parameter must be specified", 400)
+			return
 		}
+		log.Debugf("Scraping target '%s'", target)
+
+		var targetCredential *Credential
+		var err error
+		if targetCredential, err = sc.CredentialsForTarget(target); err != nil {
+			log.Fatalf("Error getting credentialfor target %s file: %s", target, err)
+		}
+
+
+			groupName,netappClient := newNetappClient(target,targetCredential)
+			collector := collector.New(groupName,netappClient)
+			registry.MustRegister(collector)
+		
 		gatherers := prometheus.Gatherers{
 			prometheus.DefaultGatherer,
 			registry,
@@ -59,7 +73,13 @@ func main() {
 	kingpin.Parse()
 	log.Infoln("Starting netapp_exporter")
 
-	http.Handle("/metrics", metricsHandler()) // Regular metrics endpoint for local IPMI metrics.
+	if err := sc.ReloadConfig(*configFile); err != nil {
+		log.Fatalf("Error parsing config file: %s", err)
+	}
+
+	http.Handle("/netapp", metricsHandler()) // Regular metrics endpoint for local netapp metrics.
+	http.Handle("/metrics", promhttp.Handler())
+
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
@@ -79,13 +99,12 @@ func main() {
             </style>
             </head>
             <body>
-            <h1>IPMI Exporter</h1>
-            <form action="/ipmi">
+            <h1>netapp Exporter</h1>
+            <form action="/netapp">
             <label>Target:</label> <input type="text" name="target" placeholder="X.X.X.X" value="1.2.3.4"><br>
             <input type="submit" value="Submit">
 			</form>
 			<p><a href="/metrics">Local metrics</a></p>
-			<p><a href="/config">Config</a></p>
             </body>
             </html>`))
 	})

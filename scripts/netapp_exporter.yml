@@ -1,5 +1,6 @@
-- name: NetAPP1
-  host: 10.36.48.39
-  username: admin
-  password: password
-  Debug: false
+credentials:
+    10.36.48.39:
+      group: BSU
+      username: admin
+      password: pass
+      debug: false

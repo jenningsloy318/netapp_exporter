@@ -7,46 +7,95 @@ import (
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
 	"time"
+	"sync"
 )
 
-type Filer struct {
-	Name     string `yaml:"name"`
-	Host     string `yaml:"host"`
+type Config struct {
+	Credentials map[string]Credential `yaml:"credentials"`
+}
+
+type SafeConfig struct {
+	sync.RWMutex
+	C *Config
+}
+
+type Credential struct {
+	Group     string `yaml:"group"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	Debug    bool   `yaml:"debug"`
 }
 
-func loadFilerFromFile(fileName string) (c []*Filer) {
-	var fb []Filer
-	yamlFile, err := ioutil.ReadFile(fileName)
+func (sc *SafeConfig) ReloadConfig(configFile string) error {
+	var c = &Config{}
+
+	yamlFile, err := ioutil.ReadFile(configFile)
 	if err != nil {
-		log.Fatal("[ERROR] ", err)
+		log.Errorf("Error reading config file: %s", err)
+		return err
 	}
-	err = yaml.Unmarshal(yamlFile, &fb)
-	if err != nil {
-		log.Fatal("[ERROR] ", err)
+	if err := yaml.Unmarshal(yamlFile, c); err != nil {
+		log.Errorf("Error parsing config file: %s", err)
+		return err
 	}
-	for _, b := range fb {
-		c = append(c, &b)
-	}
-	return
+
+	sc.Lock()
+	sc.C = c
+	sc.Unlock()
+
+	log.Infoln("Loaded config file")
+	return nil
 }
 
-func newNetappClient(filer *Filer) (string, *netapp.Client) {
+
+
+func (sc *SafeConfig) CredentialsForTarget(target string) (*Credential, error) {
+	sc.Lock()
+	defer sc.Unlock()
+	if credential, ok := sc.C.Credentials[target]; ok {
+		return &Credential{
+			Group:     credential.Group,
+			Username:     credential.Username,
+			Password: credential.Password,
+			Debug: credential.Debug,
+		}, nil
+	}
+	if credential, ok := sc.C.Credentials["default"]; ok {
+		return &Credential{
+			Group:     credential.Group,
+			Username:     credential.Username,
+			Password: credential.Password,
+			Debug: credential.Debug,
+		}, nil
+	}
+	return &Credential{}, fmt.Errorf("no credentials found for target %s", target)
+}
+
+
+func newNetappClient(host string, credential *Credential) (string, *netapp.Client) {
 
 	_url := "https://%s/servlets/netapp.servlets.admin.XMLrequest_filer"
-	url := fmt.Sprintf(_url, filer.Host)
+	url := fmt.Sprintf(_url, host)
 
 	version := "1.130"
 
 	opts := &netapp.ClientOptions{
-		BasicAuthUser:     filer.Username,
-		BasicAuthPassword: filer.Password,
+		BasicAuthUser:     credential.Username,
+		BasicAuthPassword: credential.Password,
 		SSLVerify:         false,
-		Debug:						 filer.Debug,
+		Debug:						 credential.Debug,
 		Timeout:           30 * time.Second,
 	}
 	netappClient :=netapp.NewClient(url, version, opts)
-	return filer.Name, netappClient
+	return credential.Group, netappClient
 }
+
+
+
+
+
+
+
+
+
+
