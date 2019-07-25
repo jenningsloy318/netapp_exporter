@@ -31,7 +31,7 @@ curl http://<netapp-export host>:9609/netapp?target=10.36.48.39
 ```
 
 ## prometheus job conf
-add hana-exporter job conif as following
+add netapp-exporter job conif as following
 ```yaml
   - job_name: 'netapp-exporter'
 
@@ -50,5 +50,5 @@ add hana-exporter job conif as following
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: localhost:9609  ### the address of the hana-exporter address
+        replacement: localhost:9609  ### the address of the netapp-exporter address
 ````
