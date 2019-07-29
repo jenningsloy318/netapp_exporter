@@ -46,7 +46,7 @@ var scrapers = []Scraper{
 	ScrapeLun{},
 	ScrapeSnapshot{},
 	ScrapePerf{},
-	ScrapeAggrStorageDisk{},
+	ScrapeStorageDisk{},
 }
 
 func New(Groupname string, netappClient *netapp.Client) *Exporter {
@@ -158,8 +158,10 @@ func GetClusterIdentity(netappClient *netapp.Client) map[string]string {
 		DesiredAttributes: &netapp.ClusterIdentityInfo{},
 	}
 
-	l, _, _ := netappClient.ClusterIdentity.List(ops)
-
+	l, _, err := netappClient.ClusterIdentity.List(ops)
+	if err !=nil  {
+		log.Fatalf("error when getting ClusterIdentity, %s",err)
+	}
 	clusterIdentity["clusterName"] = l.Results.ClusterIdentityInfo[0].ClusterName
 	clusterIdentity["clusterSerialNumber"] = l.Results.ClusterIdentityInfo[0].ClusterSerialNumber
 	clusterIdentity["clusterLocation"] = l.Results.ClusterIdentityInfo[0].ClusterLocation

@@ -141,8 +141,10 @@ func GetPerfObjectInstanceList(netappClient *netapp.Client, objectName string) (
 		DesiredAttributes: &netapp.InstanceInfo{},
 		ObjectName:        objectName,
 	}
-	resp, _, _ := netappClient.Perf.PerfObjectInstanceListInfoIter(opts)
-
+	resp, _, err := netappClient.Perf.PerfObjectInstanceListInfoIter(opts)
+	if err !=nil  {
+		log.Fatalf("error when getting perf list, %s",err)
+	}
 	r = resp.Results.AttributesList.InstanceInfo // return a slice of instances
 	return
 }

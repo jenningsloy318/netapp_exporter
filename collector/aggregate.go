@@ -196,7 +196,10 @@ func GetAggrSpaceData(netappClient *netapp.Client, aggrName string) map[string]s
 		},
 	}
 	var AggrSpaceData = make(map[string]string)
-	l, _, _ := netappClient.AggregateSpace.List(opts)
+	l, _, err := netappClient.AggregateSpace.List(opts)
+	if err !=nil  {
+		log.Fatalf("error when getting aggregates, %s",err)
+	}
 	AggrSpaceData["SnapSizeTotal"] = l.Results.AttributesList.AggrAttributes[0].SnapSizeTotal
 	return AggrSpaceData
 }

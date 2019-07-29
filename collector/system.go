@@ -2,7 +2,6 @@ package collector
 
 import (
 	"log"
-
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
 )

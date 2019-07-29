@@ -1,7 +1,7 @@
 package collector
 
 import (
-	//	"log"
+		"log"
 	"github.com/pepabo/go-netapp/netapp"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -83,7 +83,10 @@ func GetVserverData(netappClient *netapp.Client) (r []*VServer) {
 			},
 		},
 	}
-	l, _, _ := netappClient.VServer.List(opts)
+	l, _, err := netappClient.VServer.List(opts)
+	if err !=nil  {
+		log.Fatalf("error when getting VServers, %s",err)
+	}
 	for _, n := range l.Results.AttributesList.VserverInfo {
 		r = append(r, &VServer{
 			VserverName:                n.VserverName,
