@@ -125,11 +125,14 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	e.netappUp.Set(0)
 	ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(scrapeTime).Seconds(), "connection")
 
-	if clusterName, ok := GetClusterIdentity(e.netappClient)["clusterName"]; ok {
+	if clusterIdentity, ok := GetClusterIdentity(e.netappClient); ok {
 
 		e.netappUp.Set(1)
-		BaseLabelValues[1] = clusterName
+		BaseLabelValues[1] = clusterIdentity["clusterName"]
 
+	} else {
+		e.netappUp.Set(0)
+		return
 	}
 
 	wg := &sync.WaitGroup{}
@@ -151,7 +154,7 @@ func (e *Exporter) scrape(ch chan<- prometheus.Metric) {
 	}
 }
 
-func GetClusterIdentity(netappClient *netapp.Client) map[string]string {
+func GetClusterIdentity(netappClient *netapp.Client) (map[string]string, bool) {
 
 	clusterIdentity := make(map[string]string)
 	ops := &netapp.ClusterIdentityOptions{
@@ -160,10 +163,11 @@ func GetClusterIdentity(netappClient *netapp.Client) map[string]string {
 
 	l, _, err := netappClient.ClusterIdentity.List(ops)
 	if err !=nil  {
-		log.Fatalf("error when getting ClusterIdentity, %s",err)
+		log.Infof("error when getting ClusterIdentity, %s",err)
+		return clusterIdentity, false
 	}
 	clusterIdentity["clusterName"] = l.Results.ClusterIdentityInfo[0].ClusterName
 	clusterIdentity["clusterSerialNumber"] = l.Results.ClusterIdentityInfo[0].ClusterSerialNumber
 	clusterIdentity["clusterLocation"] = l.Results.ClusterIdentityInfo[0].ClusterLocation
-	return clusterIdentity
+	return clusterIdentity,true 
 }
