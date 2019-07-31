@@ -16,7 +16,7 @@ const (
 
 // Metric descriptors.
 var (
-	objects = []string{"system", "system:node", "nfsv3", "lif", "lun", "aggregate", "disk", "workload", "processor", "processor:node", "volume:node", "volume:vserver"}
+	objects = []string{"system", "system:node", "nfsv3","nfsv3:node","lif", "lun", "aggregate", "disk", "workload", "processor", "processor:node", "volume:node", "volume:vserver"}
 	// we can get all objects via connect to netapp,  set advanced, then issue command statistics catalog object show
 )
 
