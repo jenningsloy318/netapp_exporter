@@ -1,4 +1,4 @@
-credentials:
+devices:
     10.36.48.39:
       group: BSU
       username: admin

@@ -7,7 +7,7 @@ This exporter will expose metrics about a netapp ontap NAS storage system, which
 
 example configure set as [example](./scripts/netapp_exporter.yml)
 ```yaml
-credentials:
+devices:
     10.36.48.39:
       group: BSU
       username: admin

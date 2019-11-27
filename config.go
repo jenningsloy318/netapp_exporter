@@ -6,12 +6,12 @@ import (
 	"github.com/prometheus/common/log"
 	yaml "gopkg.in/yaml.v2"
 	"io/ioutil"
-	"time"
 	"sync"
+	"time"
 )
 
 type Config struct {
-	Credentials map[string]Credential `yaml:"credentials"`
+	Devices map[string]DeviceConfig `yaml:"devices"`
 }
 
 type SafeConfig struct {
@@ -19,8 +19,8 @@ type SafeConfig struct {
 	C *Config
 }
 
-type Credential struct {
-	Group     string `yaml:"group"`
+type DeviceConfig struct {
+	Group    string `yaml:"group"`
 	Username string `yaml:"username"`
 	Password string `yaml:"password"`
 	Debug    bool   `yaml:"debug"`
@@ -47,32 +47,29 @@ func (sc *SafeConfig) ReloadConfig(configFile string) error {
 	return nil
 }
 
-
-
-func (sc *SafeConfig) CredentialsForTarget(target string) (*Credential, error) {
+func (sc *SafeConfig) DeviceConfigForTarget(target string) (*DeviceConfig, error) {
 	sc.Lock()
 	defer sc.Unlock()
-	if credential, ok := sc.C.Credentials[target]; ok {
-		return &Credential{
-			Group:     credential.Group,
-			Username:     credential.Username,
-			Password: credential.Password,
-			Debug: credential.Debug,
+	if deviceConfig, ok := sc.C.Devices[target]; ok {
+		return &DeviceConfig{
+			Group:    deviceConfig.Group,
+			Username: deviceConfig.Username,
+			Password: deviceConfig.Password,
+			Debug:    deviceConfig.Debug,
 		}, nil
 	}
-	if credential, ok := sc.C.Credentials["default"]; ok {
-		return &Credential{
-			Group:     credential.Group,
-			Username:     credential.Username,
-			Password: credential.Password,
-			Debug: credential.Debug,
+	if deviceConfig, ok := sc.C.Devices["default"]; ok {
+		return &DeviceConfig{
+			Group:    deviceConfig.Group,
+			Username: deviceConfig.Username,
+			Password: deviceConfig.Password,
+			Debug:    deviceConfig.Debug,
 		}, nil
 	}
-	return &Credential{}, fmt.Errorf("no credentials found for target %s", target)
+	return &DeviceConfig{}, fmt.Errorf("no credentials found for target %s", target)
 }
 
-
-func newNetappClient(host string, credential *Credential) (string, *netapp.Client) {
+func newNetappClient(host string, deviceConfig *DeviceConfig) (string, *netapp.Client) {
 
 	_url := "https://%s/servlets/netapp.servlets.admin.XMLrequest_filer"
 	url := fmt.Sprintf(_url, host)
@@ -80,22 +77,12 @@ func newNetappClient(host string, credential *Credential) (string, *netapp.Clien
 	version := "1.130"
 
 	opts := &netapp.ClientOptions{
-		BasicAuthUser:     credential.Username,
-		BasicAuthPassword: credential.Password,
+		BasicAuthUser:     deviceConfig.Username,
+		BasicAuthPassword: deviceConfig.Password,
 		SSLVerify:         false,
-		Debug:						 credential.Debug,
+		Debug:             deviceConfig.Debug,
 		Timeout:           30 * time.Second,
 	}
-	netappClient :=netapp.NewClient(url, version, opts)
-	return credential.Group, netappClient
+	netappClient := netapp.NewClient(url, version, opts)
+	return deviceConfig.Group, netappClient
 }
-
-
-
-
-
-
-
-
-
-

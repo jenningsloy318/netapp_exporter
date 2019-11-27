@@ -18,7 +18,7 @@ var (
 		"web.listen-address",
 		"Address to listen on for web interface and telemetry.",
 	).Default(":9609").String()
-	sc         = &SafeConfig{
+	sc = &SafeConfig{
 		C: &Config{},
 	}
 	reloadCh chan chan error
@@ -36,17 +36,16 @@ func metricsHandler() http.HandlerFunc {
 		}
 		log.Debugf("Scraping target '%s'", target)
 
-		var targetCredential *Credential
+		var deviceConfig *DeviceConfig
 		var err error
-		if targetCredential, err = sc.CredentialsForTarget(target); err != nil {
+		if deviceConfig, err = sc.DeviceConfigForTarget(target); err != nil {
 			log.Fatalf("Error getting credentialfor target %s file: %s", target, err)
 		}
 
+		groupName, netappClient := newNetappClient(target, deviceConfig)
+		collector := collector.New(groupName, netappClient)
+		registry.MustRegister(collector)
 
-			groupName,netappClient := newNetappClient(target,targetCredential)
-			collector := collector.New(groupName,netappClient)
-			registry.MustRegister(collector)
-		
 		gatherers := prometheus.Gatherers{
 			prometheus.DefaultGatherer,
 			registry,
@@ -57,14 +56,14 @@ func metricsHandler() http.HandlerFunc {
 	}
 }
 
-
-var Vsersion string 
+var Vsersion string
 var BuildRevision string
 var BuildBranch string
 var BuildTime string
-var BuildHost string 
+var BuildHost string
+
 func init() {
-	log.Infof("netapp_exporter version %s, build reversion %s, build branch %s, build at %s on host %s",Vsersion,BuildRevision,BuildBranch,BuildTime,BuildHost)
+	log.Infof("netapp_exporter version %s, build reversion %s, build branch %s, build at %s on host %s", Vsersion, BuildRevision, BuildBranch, BuildTime, BuildHost)
 }
 
 func main() {
@@ -79,7 +78,6 @@ func main() {
 
 	http.Handle("/netapp", metricsHandler()) // Regular metrics endpoint for local netapp metrics.
 	http.Handle("/metrics", promhttp.Handler())
-
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`<html>
