@@ -30,8 +30,8 @@ curl http://<netapp-export host>:9609/netapp?target=10.36.48.39
 
 ```
 
-## prometheus job conf
-add netapp-exporter job conif as following
+## prometheus job config
+add netapp-exporter job config as following
 ```yaml
   - job_name: 'netapp-exporter'
 
@@ -51,4 +51,7 @@ add netapp-exporter job conif as following
         target_label: instance
       - target_label: __address__
         replacement: localhost:9609  ### the address of the netapp-exporter address
-````
+```
+
+## Acknowledgement 
+[go-netapp](https://github.com/pepabo/go-netapp) provides the underlying libaray to interact with netapp storage systems.
