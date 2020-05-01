@@ -52,6 +52,10 @@ add netapp-exporter job config as following
       - target_label: __address__
         replacement: localhost:9609  ### the address of the netapp-exporter address
 ```
+## Support netapp(only worked with legacy xml api, under version 9.6)
+- ONTAP NetApp Release 9.3P2 
+- ONTAP NetApp Release 9.3P12
+
 
 ## Acknowledgement 
 [go-netapp](https://github.com/pepabo/go-netapp) provides the underlying libaray to interact with netapp storage systems.

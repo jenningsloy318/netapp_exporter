@@ -15,8 +15,9 @@ REVERSION ?=$(shell git log -1 --pretty="%H")
 BRANCH ?=$(shell git rev-parse --abbrev-ref HEAD)
 TIME ?=$(shell date)
 HOST ?=$(shell hostname)  
+DOCKER-CLIENT = /usr/bin/docker
 
-all:  vet fmt style staticcheck unused  build buildrpm test
+all:   fmt style  build  docker-build rpm docker-rpm
 
  
 style:
@@ -33,37 +34,23 @@ check_license:
                exit 1; \
        fi
 
-test-short:
-	@echo ">> running short tests"
-	$(GO) test -short $(pkgs)
-
-test:
-	@echo ">> running all tests"
-	$(GO) test -race $(pkgs)
-
-format:
-	@echo ">> formatting code"
-	$(GO) fmt $(pkgs)
-
-vet:
-	@echo ">> vetting code"
-	$(GO) vet $(pkgs)
-
-staticcheck: | $(STATICCHECK)
-	@echo ">> running staticcheck"
-	$(STATICCHECK) -ignore "$(STATICCHECK_IGNORE)" $(pkgs)
-
-unused: 
-	@echo ">> running check for unused packages"
-	@$(GOVENDOR) list +unused | grep . && exit 1 || echo 'No unused packages'
-
 build: 
 	@echo ">> building binaries"
 	$(GO) build  -o $(BIN_DIR)/netapp_exporter  -ldflags  '-X "main.Vsersion=$(VERSION)" -X  "main.BuildRevision=$(REVERSION)" -X  "main.BuildBranch=$(BRANCH)" -X "main.BuildTime=$(TIME)" -X "main.BuildHost=$(HOST)"'
 
+docker-build:
+	$(DOCKER-CLIENT) run -v `pwd`:/go/src/github.com/jenningsloy318/netapp_exporter  -w /go/src/github.com/jenningsloy318/netapp_exporter docker.io/jenningsloy318/prom-builder  make build
+
 rpm: | build
 	@echo ">> building rpm package"
 	$(RPM) 
+
+docker-rpm:
+	$(DOCKER-CLIENT) run -v `pwd`:/go/src/github.com/jenningsloy318/netapp_exporter  -w /go/src/github.com/jenningsloy318/netapp_exporter docker.io/jenningsloy318/prom-builder  make rpm
+
+clean:
+	rm -rf $(BIN_DIR)
+
 
 fmt:
 	@echo ">> format code style"
@@ -71,10 +58,4 @@ fmt:
 
 
 
-$(STATICCHECK):
-	GOOS= GOARCH= $(GO) get -u honnef.co/go/tools/cmd/staticcheck
-
-$(GOVENDOR):
-	GOOS= GOARCH= $(GO) get -u github.com/kardianos/govendor
-
-.PHONY: all style check_license format build test vet assets tarball fmt  $(GODEP)  $(PROMU) $(STATICCHECK) $(GOVENDOR) package
+.PHONY: all style check_license  build docker-build  rpm docker-rpm fmt 
