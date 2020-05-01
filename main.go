@@ -1,12 +1,13 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/jenningsloy318/netapp_exporter/collector"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
-	"net/http"
 )
 
 var (
@@ -39,7 +40,8 @@ func metricsHandler() http.HandlerFunc {
 		var deviceConfig *DeviceConfig
 		var err error
 		if deviceConfig, err = sc.DeviceConfigForTarget(target); err != nil {
-			log.Fatalf("Error getting credentialfor target %s file: %s", target, err)
+			log.Errorf("Error getting credentialfor target %s, error: %s", target, err)
+			return
 		}
 
 		groupName, netappClient := newNetappClient(target, deviceConfig)
