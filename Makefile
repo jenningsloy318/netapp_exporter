@@ -15,7 +15,7 @@ REVERSION ?=$(shell git log -1 --pretty="%H")
 BRANCH ?=$(shell git rev-parse --abbrev-ref HEAD)
 TIME ?=$(shell date)
 HOST ?=$(shell hostname)  
-DOCKER-CLIENT = /usr/bin/docker
+DOCKER := $(shell { command -v podman || command -v docker; } 2>/dev/null)
 
 all:   fmt style  build  docker-build rpm docker-rpm
 
@@ -39,14 +39,14 @@ build:
 	$(GO) build  -o $(BIN_DIR)/netapp_exporter  -ldflags  '-X "main.Vsersion=$(VERSION)" -X  "main.BuildRevision=$(REVERSION)" -X  "main.BuildBranch=$(BRANCH)" -X "main.BuildTime=$(TIME)" -X "main.BuildHost=$(HOST)"'
 
 docker-build:
-	$(DOCKER-CLIENT) run -v `pwd`:/go/src/github.com/jenningsloy318/netapp_exporter  -w /go/src/github.com/jenningsloy318/netapp_exporter docker.io/jenningsloy318/prom-builder  make build
+	$(DOCKER) run -v `pwd`:/go/src/github.com/jenningsloy318/netapp_exporter  -w /go/src/github.com/jenningsloy318/netapp_exporter docker.io/jenningsloy318/prom-builder  make build
 
 rpm: | build
 	@echo ">> building rpm package"
 	$(RPM) 
 
 docker-rpm:
-	$(DOCKER-CLIENT) run -v `pwd`:/go/src/github.com/jenningsloy318/netapp_exporter  -w /go/src/github.com/jenningsloy318/netapp_exporter docker.io/jenningsloy318/prom-builder  make rpm
+	$(DOCKER) run -v `pwd`:/go/src/github.com/jenningsloy318/netapp_exporter  -w /go/src/github.com/jenningsloy318/netapp_exporter docker.io/jenningsloy318/prom-builder  make rpm
 
 clean:
 	rm -rf $(BIN_DIR)
